@@ -14,11 +14,10 @@ export class Bootstrap {
 
     async onApplicationBootstrap() {
 
-        const profileHaveData = this.profileService.haveData()
-        const userHaveData = this.userService.haveData()
+        const profileHaveData = await this.profileService.haveData()
+        const userHaveData = await this.userService.haveData()
 
-
-        if (profileHaveData && userHaveData) {
+        if (!profileHaveData && !userHaveData) {
 
             const profile: CreateProfileDto = {
                 profile_name: 'ADMIN'

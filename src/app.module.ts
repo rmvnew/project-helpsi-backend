@@ -8,6 +8,7 @@ import { ConfigModule } from './config/environments/config.module';
 import { SwaggerModule } from './config/swagger/swagger.module';
 import { ProfileModule } from './profile/profile.module';
 import { UserModule } from './user/user.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { UserModule } from './user/user.module';
     UserModule,
     DatabaseModule,
     SwaggerModule,
-    ProfileModule
+    ProfileModule,
+    MailModule
   ],
   controllers: [],
   providers: [
