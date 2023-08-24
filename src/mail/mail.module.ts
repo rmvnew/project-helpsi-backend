@@ -9,6 +9,7 @@ import { transporter } from './transporter.config';
     {
       provide: 'MAIL_TRANSPORTER',
       useValue: transporter,
-    },]
+    },],
+  exports: [MailService]
 })
 export class MailModule { }

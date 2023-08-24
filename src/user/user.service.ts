@@ -4,7 +4,9 @@ import * as bcrypt from 'bcrypt';
 import { Pagination, paginate } from 'nestjs-typeorm-paginate';
 import { ObjectSize, SortingType, ValidType } from 'src/common/Enums';
 import { Utils } from 'src/common/Utils';
+import { CodeRecoverInterface } from 'src/common/interfaces/email.interface';
 import { Validations } from 'src/common/validations';
+import { MailService } from 'src/mail/mail.service';
 import { ProfileEntity } from 'src/profile/entities/profile.entity';
 import { Repository } from 'typeorm';
 import { FilterUser } from './dto/Filter.user';
@@ -15,11 +17,13 @@ import { UserEntity } from './entities/user.entity';
 @Injectable()
 export class UserService {
 
+
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(ProfileEntity)
-    private readonly profileRepository: Repository<ProfileEntity>
+    private readonly profileRepository: Repository<ProfileEntity>,
+    private readonly mailservice: MailService
   ) { }
 
 
@@ -417,6 +421,50 @@ export class UserService {
     } else {
       return false
     }
+
   }
+
+
+  async recoverCode(email: string) {
+
+    const user = await this.findByEmail(email)
+
+    if (!user) {
+      throw new NotFoundException(`O email informado é inválido!`)
+    }
+
+    const code = this.generateCode()
+
+    user.user_recovery_code = code
+
+    await this.userRepository.save(user)
+
+    const codeRecover: CodeRecoverInterface = {
+      name: user.user_name,
+      code: code,
+      email: user.user_email
+    }
+
+    this.mailservice.sendMail(codeRecover)
+
+    setTimeout(async () => {
+      await this.clearCode(user)
+    })
+  }
+
+  async clearCode(user: UserEntity) {
+    user.user_recovery_code = null
+    await this.userRepository.save(user)
+  }
+
+
+  generateCode() {
+    const minNumber = 100000;
+    const maxNumber = 999999;
+
+    const randomNumber = Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
+    return randomNumber
+  }
+
 
 }

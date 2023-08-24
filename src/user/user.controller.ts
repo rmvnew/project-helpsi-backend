@@ -1,16 +1,16 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Put, Patch, Query } from '@nestjs/common';
-import { UserService } from './user.service';
+import { Body, Controller, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import AccessProfile from 'src/auth/enums/permission.type';
+import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
+import { PublicRoute } from 'src/common/decorators/public_route.decorator';
+import { getUserPath } from 'src/common/routes.path';
+import { ProfileEntity } from 'src/profile/entities/profile.entity';
+import { FilterUser } from './dto/Filter.user';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './entities/user.entity';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
-import AccessProfile from 'src/auth/enums/permission.type';
-import { FilterUser } from './dto/Filter.user';
-import { Pagination } from 'nestjs-typeorm-paginate';
-import { getUserPath } from 'src/common/routes.path';
-import { PublicRoute } from 'src/common/decorators/public_route.decorator';
-import { ProfileEntity } from 'src/profile/entities/profile.entity';
+import { UserService } from './user.service';
 
 @Controller('user')
 @ApiTags('User')
@@ -88,5 +88,16 @@ export class UserController {
   ) {
     return this.userService.resetPassword(email)
   }
+
+
+  @Put('/recover-code')
+  @PublicRoute()
+  async recoverCode(
+    @Query('email') email: string
+  ) {
+    return this.userService.recoverCode(email)
+  }
+
+
 
 }
