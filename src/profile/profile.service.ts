@@ -25,14 +25,12 @@ export class ProfileService {
     return this.profileRepository.find()
   }
 
-  async haveData() {
-    const count = await this.profileRepository.count();
-
-    if (count === 0) {
-      return false
-    } else {
-      return true
-    }
+  async haveProfile(name: string) {
+    return this.profileRepository.findOne({
+      where: {
+        profile_name: name
+      }
+    })
   }
 
   async findById(id: number) {

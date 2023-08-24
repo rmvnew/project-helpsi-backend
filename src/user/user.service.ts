@@ -405,13 +405,17 @@ export class UserService {
 
 
 
-  async haveData() {
-    const count = await this.userRepository.count();
+  async haveAdmin(name: string) {
+    const admin = await this.userRepository.findOne({
+      where: {
+        user_name: name.toUpperCase()
+      }
+    })
 
-    if (count === 0) {
-      return false
-    } else {
+    if (admin) {
       return true
+    } else {
+      return false
     }
   }
 

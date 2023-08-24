@@ -14,22 +14,28 @@ export class Bootstrap {
 
     async onApplicationBootstrap() {
 
-        const profileHaveData = await this.profileService.haveData()
-        const userHaveData = await this.userService.haveData()
+        const profileHaveData = await this.profileService.haveProfile('ADMIN')
+        const userHaveData = await this.userService.haveAdmin('sysadmin')
 
-        if (!profileHaveData && !userHaveData) {
+        let currentProfile = profileHaveData
+
+
+        if (!profileHaveData) {
 
             const profile: CreateProfileDto = {
                 profile_name: 'ADMIN'
             }
 
-            const profileSaved = await this.profileService.create(profile)
+            currentProfile = await this.profileService.create(profile)
+        }
+
+        if (!userHaveData) {
 
             const user: CreateUserDto = {
                 user_name: 'sysadmin',
                 user_email: 'sysadmin@email.com',
                 user_password: process.env.SYSADMIN_PASS,
-                user_profile_id: profileSaved.profile_id
+                user_profile_id: currentProfile.profile_id
             }
 
             this.userService.create(user)
