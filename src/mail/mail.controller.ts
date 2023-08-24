@@ -1,7 +1,8 @@
-import { Controller, Post, UseGuards } from '@nestjs/common';
+import { Controller, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import AccessProfile from 'src/auth/enums/permission.type';
 import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
+import { CodeRecoverInterface } from 'src/common/interfaces/email.interface';
 import { MailService } from './mail.service';
 
 @Controller('mail')
@@ -12,8 +13,19 @@ export class MailController {
 
   @Post()
   @UseGuards(PermissionGuard(AccessProfile.ADMIN))
-  sendMail() {
-    return this.mailService.sendMail();
+  sendMail(
+    @Query('name') name: string,
+    @Query('email') email: string,
+    @Query('code') code: number,
+  ) {
+
+    const data: CodeRecoverInterface = {
+      name: name,
+      email: email,
+      code: code
+    }
+
+    return this.mailService.sendMail(data);
   }
 
 
