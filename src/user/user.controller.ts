@@ -90,7 +90,7 @@ export class UserController {
   }
 
 
-  @Put('/recover-code')
+  @Post('/recover-code')
   @PublicRoute()
   async recoverCode(
     @Query('email') email: string
