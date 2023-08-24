@@ -1,12 +1,32 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import * as nodemailer from 'nodemailer';
 import { Transporter } from 'nodemailer';
 import { CodeRecoverInterface } from 'src/common/interfaces/email.interface';
 
 @Injectable()
 export class MailService {
 
-  constructor(@Inject('MAIL_TRANSPORTER') private readonly transporter: Transporter) { }
+  private readonly transporter: Transporter;
+
+  constructor() {
+    this.transporter = nodemailer.createTransport({
+      host: 'smtp.office365.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASSWORD,
+      },
+    });
+
+    console.log("Inicializando MailService...");
+    console.log("User:", process.env.MAIL_USER);
+    console.log("Pass:", process.env.MAIL_PASSWORD ? 'Password Present' : 'Password Absent');
+  }
+
   sendMail(codeRecover: CodeRecoverInterface) {
+    console.log(codeRecover);
+
     const mailOptions = {
       to: codeRecover.email,
       from: 'HelPsi <helpsimanaus@outlook.com>',
@@ -21,7 +41,6 @@ export class MailService {
                   <p>Atenciosamente,</p>
                   <p>Equipe do HelPsi</p>
               </div>
-
             `
 
     };

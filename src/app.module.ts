@@ -6,9 +6,9 @@ import { Bootstrap } from './config/bootstrap';
 import { DatabaseModule } from './config/database/database.module';
 import { ConfigModule } from './config/environments/config.module';
 import { SwaggerModule } from './config/swagger/swagger.module';
+import { EmailModule } from './mail/mail.module';
 import { ProfileModule } from './profile/profile.module';
 import { UserModule } from './user/user.module';
-import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -18,7 +18,7 @@ import { MailModule } from './mail/mail.module';
     DatabaseModule,
     SwaggerModule,
     ProfileModule,
-    MailModule
+    EmailModule
   ],
   controllers: [],
   providers: [

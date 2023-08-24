@@ -1,15 +1,18 @@
 import { Module } from '@nestjs/common';
 import { MailController } from './mail.controller';
 import { MailService } from './mail.service';
-import { transporter } from './transporter.config';
 
 @Module({
+  imports: [
+
+  ],
   controllers: [MailController],
   providers: [MailService,
-    {
-      provide: 'MAIL_TRANSPORTER',
-      useValue: transporter,
-    },],
+    // {
+    //   provide: 'MAIL_TRANSPORTER',
+    //   useValue: transporter,
+    // },
+  ],
   exports: [MailService]
 })
-export class MailModule { }
+export class EmailModule { }

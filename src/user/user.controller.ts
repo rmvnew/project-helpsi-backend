@@ -21,7 +21,7 @@ export class UserController {
 
   @Post()
   @UseGuards(PermissionGuard(AccessProfile.ADMIN))
-  @PublicRoute()
+  // @PublicRoute()
   async create(
     @Body() createUserDto: CreateUserDto
   ): Promise<UserEntity> {

@@ -1,5 +1,8 @@
-
 import * as nodemailer from 'nodemailer';
+
+// Logs para verificar as variáveis de ambiente
+console.log('User:', process.env.MAIL_USER);
+console.log('Password:', process.env.MAIL_PASSWORD);
 
 export const transporter = nodemailer.createTransport({
     host: 'smtp.office365.com',

@@ -427,7 +427,10 @@ export class UserService {
 
   async recoverCode(email: string) {
 
+
+
     const user = await this.findByEmail(email)
+
 
     if (!user) {
       throw new NotFoundException(`O email informado é inválido!`)
@@ -437,7 +440,11 @@ export class UserService {
 
     user.user_recovery_code = code
 
-    await this.userRepository.save(user)
+
+
+    const userSaved = await this.userRepository.save(user)
+
+    console.log('UserSaved: ', userSaved);
 
     const codeRecover: CodeRecoverInterface = {
       name: user.user_name,
@@ -449,7 +456,7 @@ export class UserService {
 
     setTimeout(async () => {
       await this.clearCode(user)
-    })
+    }, 5 * 60 * 1000)
   }
 
   async clearCode(user: UserEntity) {
