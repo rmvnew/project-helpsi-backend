@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Pagination, paginate } from 'nestjs-typeorm-paginate';
@@ -23,182 +23,26 @@ export class UserService {
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(ProfileEntity)
     private readonly profileRepository: Repository<ProfileEntity>,
-    private readonly mailservice: MailService
+    private readonly mailservice: MailService,
+    private readonly logger = new Logger(UserService.name)
   ) { }
 
 
 
   async create(createUserDto: CreateUserDto) {
 
-    const { user_name, user_profile_id: profile_id, user_email, user_password } = createUserDto
+    try {
+      const { user_name, user_profile_id: profile_id, user_email, user_password } = createUserDto
 
-    if (user_name.trim() == '' || user_name == undefined) {
-      throw new BadRequestException(`O nome não pode estar vazio`)
-    }
-
-    if (user_email.trim() == '' || user_email == undefined) {
-      throw new BadRequestException(`O email não pode estar vazio`)
-    }
-
-    const user = this.userRepository.create(createUserDto)
-
-    user.user_name = user_name.toUpperCase()
-
-    Validations.getInstance().validateWithRegex(
-      user.user_name,
-      ValidType.NO_MANY_SPACE,
-      ValidType.NO_SPECIAL_CHARACTER,
-      ValidType.IS_STRING
-    )
-
-    Validations.getInstance().validateWithRegex(
-      user.user_email,
-      ValidType.IS_EMAIL,
-      ValidType.NO_SPACE
-    )
-
-    Validations.getInstance().verifyLength(
-      user.user_name, 'Name', 5, 40
-    )
-
-    const userIsRegistered = await this.findByName(user.user_name)
-
-    if (userIsRegistered) {
-      throw new BadRequestException(`user already registered`)
-    }
-
-    const emailIsRegistered = await this.findByEmail(user.user_email)
-
-    if (emailIsRegistered) {
-      throw new BadRequestException(`email already registered`)
-    }
-
-    user.user_password = await Utils.getInstance().encryptPassword(user_password)
-
-    const profile = await this.findProfileById(profile_id)
-    if (!profile) {
-      throw new NotFoundException(`Perfil não encontrado`)
-    }
-
-    user.profile = profile
-
-    user.user_status = true
-
-    user.user_first_access = true
-
-    return this.userRepository.save(user)
-
-  }
-
-  async findAllProfile(): Promise<ProfileEntity[]> {
-    return this.profileRepository.find()
-  }
-
-  async findProfileById(id: number): Promise<ProfileEntity> {
-    return this.profileRepository.findOne({
-      where: {
-        profile_id: id
+      if (user_name.trim() == '' || user_name == undefined) {
+        throw new BadRequestException(`O nome não pode estar vazio`)
       }
-    })
-  }
 
-
-
-  async findAll(filter: FilterUser): Promise<Pagination<UserEntity>> {
-
-    const { sort, orderBy, user_name } = filter
-
-    const queryBuilder = this.userRepository.createQueryBuilder('user')
-      .leftJoinAndSelect('user.profile', 'profile')
-
-    if (user_name) {
-
-      queryBuilder
-        .where(`user.user_name like :user_name`, {
-          user_name: `%${user_name}%`
-        })
-
-    }
-
-    if (orderBy == SortingType.ID) {
-
-      queryBuilder.orderBy('user.user_id', `${sort === 'DESC' ? 'DESC' : 'ASC'}`)
-
-    } else {
-
-      queryBuilder.orderBy('user.user_name', `${sort === 'DESC' ? 'DESC' : 'ASC'}`)
-
-    }
-
-    const page = await paginate<UserEntity>(queryBuilder, filter)
-
-    page.links.first = page.links.first === '' ? '' : `${page.links.first}&sort=${sort}&orderBy=${orderBy}`
-    page.links.previous = page.links.previous === '' ? '' : `${page.links.previous}&sort=${sort}&orderBy=${orderBy}`
-    page.links.last = page.links.last === '' ? '' : `${page.links.last}&sort=${sort}&orderBy=${orderBy}`
-    page.links.next = page.links.next === '' ? '' : `${page.links.next}&sort=${sort}&orderBy=${orderBy}`
-
-    return page
-
-  }
-
-  async findByEmail(email: string) {
-    return this.userRepository.createQueryBuilder('user')
-      .leftJoinAndSelect('user.profile', 'profile')
-      .where('user.user_email = :user_email', { user_email: email })
-      .getOne()
-  }
-
-  async findById(id: number): Promise<UserEntity> {
-    Validations.getInstance().validateWithRegex(
-      `${id}`,
-      ValidType.IS_NUMBER
-    )
-    if (id > ObjectSize.INTEGER) {
-      throw new BadRequestException(`Invalid id number`)
-    }
-
-    return this.userRepository.createQueryBuilder('user')
-      .leftJoinAndSelect('user.profile', 'profile')
-      .where('user.user_id = :user_id', { user_id: id })
-      .getOne()
-
-
-  }
-
-  async findByName(name: string): Promise<UserEntity> {
-    return this.userRepository.findOne({
-      where: {
-        user_name: name
+      if (user_email.trim() == '' || user_email == undefined) {
+        throw new BadRequestException(`O email não pode estar vazio`)
       }
-    })
-  }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {
-
-    Validations.getInstance().validateWithRegex(
-      `${id}`,
-      ValidType.IS_NUMBER
-    )
-
-    if (id > ObjectSize.INTEGER) {
-      throw new BadRequestException(`Invalid id number`)
-    }
-
-    const { user_name, user_email, user_profile_id: profile_id } = updateUserDto
-
-    const isRegistered = await this.findById(id)
-
-    if (!isRegistered) {
-      throw new NotFoundException(`User does not exist`)
-    }
-
-    const user = await this.userRepository.preload({
-      user_id: id,
-      ...updateUserDto
-    })
-
-
-    if (user_name) {
+      const user = this.userRepository.create(createUserDto)
 
       user.user_name = user_name.toUpperCase()
 
@@ -209,217 +53,441 @@ export class UserService {
         ValidType.IS_STRING
       )
 
-      Validations.getInstance().verifyLength(
-        user.user_name, 'Name', 5, 40)
-
-    }
-
-    if (user_email) {
-
-      user.user_email = user_email
-
       Validations.getInstance().validateWithRegex(
         user.user_email,
         ValidType.IS_EMAIL,
         ValidType.NO_SPACE
       )
 
-    }
+      Validations.getInstance().verifyLength(
+        user.user_name, 'Name', 5, 40
+      )
 
-    if (profile_id) {
+      const userIsRegistered = await this.findByName(user.user_name)
+
+      if (userIsRegistered) {
+        throw new BadRequestException(`user already registered`)
+      }
+
+      const emailIsRegistered = await this.findByEmail(user.user_email)
+
+      if (emailIsRegistered) {
+        throw new BadRequestException(`email already registered`)
+      }
+
+      user.user_password = await Utils.getInstance().encryptPassword(user_password)
+
       const profile = await this.findProfileById(profile_id)
-
       if (!profile) {
         throw new NotFoundException(`Perfil não encontrado`)
       }
+
       user.profile = profile
+
+      user.user_status = true
+
+      user.user_first_access = true
+
+      return this.userRepository.save(user)
+    } catch (error) {
+      this.logger.error(`createUser error: ${error.message}`, error.stack);
     }
 
-    await this.userRepository.save(user)
+  }
 
-    return this.findById(id)
+  async findAllProfile(): Promise<ProfileEntity[]> {
+    try {
+      return this.profileRepository.find()
+    } catch (error) {
+      this.logger.error(`findAllProfiles error: ${error.message}`, error.stack)
+    }
+  }
+
+  async findProfileById(id: number): Promise<ProfileEntity> {
+    try {
+      return this.profileRepository.findOne({
+        where: {
+          profile_id: id
+        }
+      })
+    } catch (error) {
+      this.logger.error(`findProfileById error: ${error.message}`, error.stack)
+    }
+  }
+
+
+
+  async findAll(filter: FilterUser): Promise<Pagination<UserEntity>> {
+
+    try {
+      const { sort, orderBy, user_name } = filter
+
+      const queryBuilder = this.userRepository.createQueryBuilder('user')
+        .leftJoinAndSelect('user.profile', 'profile')
+
+      if (user_name) {
+
+        queryBuilder
+          .where(`user.user_name like :user_name`, {
+            user_name: `%${user_name}%`
+          })
+
+      }
+
+      if (orderBy == SortingType.ID) {
+
+        queryBuilder.orderBy('user.user_id', `${sort === 'DESC' ? 'DESC' : 'ASC'}`)
+
+      } else {
+
+        queryBuilder.orderBy('user.user_name', `${sort === 'DESC' ? 'DESC' : 'ASC'}`)
+
+      }
+
+      const page = await paginate<UserEntity>(queryBuilder, filter)
+
+      page.links.first = page.links.first === '' ? '' : `${page.links.first}&sort=${sort}&orderBy=${orderBy}`
+      page.links.previous = page.links.previous === '' ? '' : `${page.links.previous}&sort=${sort}&orderBy=${orderBy}`
+      page.links.last = page.links.last === '' ? '' : `${page.links.last}&sort=${sort}&orderBy=${orderBy}`
+      page.links.next = page.links.next === '' ? '' : `${page.links.next}&sort=${sort}&orderBy=${orderBy}`
+
+      return page
+
+    } catch (error) {
+      this.logger.error(`findAll error: ${error.message}`, error.stack)
+    }
+
+  }
+
+  async findByEmail(email: string) {
+    try {
+      return this.userRepository.createQueryBuilder('user')
+        .leftJoinAndSelect('user.profile', 'profile')
+        .where('user.user_email = :user_email', { user_email: email })
+        .getOne()
+    } catch (error) {
+      this.logger.error(`findByEmail error: ${error.message}`, error.stack)
+    }
+  }
+
+  async findById(id: number): Promise<UserEntity> {
+    try {
+      Validations.getInstance().validateWithRegex(
+        `${id}`,
+        ValidType.IS_NUMBER
+      )
+      if (id > ObjectSize.INTEGER) {
+        throw new BadRequestException(`Invalid id number`)
+      }
+
+      return this.userRepository.createQueryBuilder('user')
+        .leftJoinAndSelect('user.profile', 'profile')
+        .where('user.user_id = :user_id', { user_id: id })
+        .getOne()
+
+    } catch (error) {
+      this.logger.error(`findById error: ${error.message}`, error.stack)
+    }
+
+  }
+
+  async findByName(name: string): Promise<UserEntity> {
+    try {
+      return this.userRepository.findOne({
+        where: {
+          user_name: name
+        }
+      })
+    } catch (error) {
+      this.logger.error(`findByName error: ${error.message}`, error.stack)
+    }
+  }
+
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {
+
+    try {
+      Validations.getInstance().validateWithRegex(
+        `${id}`,
+        ValidType.IS_NUMBER
+      )
+
+      if (id > ObjectSize.INTEGER) {
+        throw new BadRequestException(`Invalid id number`)
+      }
+
+      const { user_name, user_email, user_profile_id: profile_id } = updateUserDto
+
+      const isRegistered = await this.findById(id)
+
+      if (!isRegistered) {
+        throw new NotFoundException(`User does not exist`)
+      }
+
+      const user = await this.userRepository.preload({
+        user_id: id,
+        ...updateUserDto
+      })
+
+
+      if (user_name) {
+
+        user.user_name = user_name.toUpperCase()
+
+        Validations.getInstance().validateWithRegex(
+          user.user_name,
+          ValidType.NO_MANY_SPACE,
+          ValidType.NO_SPECIAL_CHARACTER,
+          ValidType.IS_STRING
+        )
+
+        Validations.getInstance().verifyLength(
+          user.user_name, 'Name', 5, 40)
+
+      }
+
+      if (user_email) {
+
+        user.user_email = user_email
+
+        Validations.getInstance().validateWithRegex(
+          user.user_email,
+          ValidType.IS_EMAIL,
+          ValidType.NO_SPACE
+        )
+
+      }
+
+      if (profile_id) {
+        const profile = await this.findProfileById(profile_id)
+
+        if (!profile) {
+          throw new NotFoundException(`Perfil não encontrado`)
+        }
+        user.profile = profile
+      }
+
+      await this.userRepository.save(user)
+
+      return this.findById(id)
+
+    } catch (error) {
+      this.logger.error(`updateUser error: ${error.message}`, error.stack)
+    }
   }
 
   async changeStatus(id: number) {
 
-    Validations.getInstance().validateWithRegex(
-      `${id}`,
-      ValidType.IS_NUMBER
-    )
+    try {
 
-    if (id > ObjectSize.INTEGER) {
-      throw new BadRequestException(`Invalid id number`)
+      Validations.getInstance().validateWithRegex(
+        `${id}`,
+        ValidType.IS_NUMBER
+      )
+
+      if (id > ObjectSize.INTEGER) {
+        throw new BadRequestException(`Invalid id number`)
+      }
+
+      const userSaved = await this.findById(id)
+
+      if (!userSaved) {
+        throw new NotFoundException(`User does not exist`)
+      }
+
+      const { user_status: status } = userSaved
+
+      console.log(userSaved);
+
+
+      userSaved.user_status = status === true ? false : true
+
+      return this.userRepository.save(userSaved)
+
+    } catch (error) {
+      this.logger.error(`changeStatus error: ${error.message}`, error.stack)
     }
-
-    const userSaved = await this.findById(id)
-
-    if (!userSaved) {
-      throw new NotFoundException(`User does not exist`)
-    }
-
-    const { user_status: status } = userSaved
-
-    console.log(userSaved);
-
-
-    userSaved.user_status = status === true ? false : true
-
-    return this.userRepository.save(userSaved)
-
   }
 
   async updateRefreshToken(id: number, refresh_token: string) {
 
-    Validations.getInstance().validateWithRegex(
-      `${id}`,
-      ValidType.IS_NUMBER
-    )
+    try {
 
-    if (id > ObjectSize.INTEGER) {
-      throw new BadRequestException(`Invalid id number`)
+      Validations.getInstance().validateWithRegex(
+        `${id}`,
+        ValidType.IS_NUMBER
+      )
+
+      if (id > ObjectSize.INTEGER) {
+        throw new BadRequestException(`Invalid id number`)
+      }
+
+      const user = await this.findById(id)
+
+      if (!user) {
+        throw new NotFoundException(`user with id ${id} does not exist`)
+      }
+
+      user.user_refresh_token = refresh_token
+
+      await this.userRepository.save(user)
+
+    } catch (error) {
+      this.logger.error(`updateRefreshToken error: ${error.message}`, error.stack)
     }
-
-    const user = await this.findById(id)
-
-    if (!user) {
-      throw new NotFoundException(`user with id ${id} does not exist`)
-    }
-
-    user.user_refresh_token = refresh_token
-
-    await this.userRepository.save(user)
-
   }
 
   async changeFirstAccess(id: number) {
 
-    Validations.getInstance().validateWithRegex(
-      `${id}`,
-      ValidType.IS_NUMBER
-    )
+    try {
+      Validations.getInstance().validateWithRegex(
+        `${id}`,
+        ValidType.IS_NUMBER
+      )
 
-    if (id > ObjectSize.INTEGER) {
-      throw new BadRequestException(`Invalid id number`)
-    }
+      if (id > ObjectSize.INTEGER) {
+        throw new BadRequestException(`Invalid id number`)
+      }
 
-    const userSaved = await this.findById(id)
+      const userSaved = await this.findById(id)
 
-    if (!userSaved) {
-      throw new NotFoundException(`user with id ${id} does not exist`)
-    }
+      if (!userSaved) {
+        throw new NotFoundException(`user with id ${id} does not exist`)
+      }
 
-    const { user_first_access: status } = userSaved
+      const { user_first_access: status } = userSaved
 
-    if (status) {
+      if (status) {
 
-      userSaved.user_first_access = false
+        userSaved.user_first_access = false
 
-      await this.userRepository.save(userSaved)
+        await this.userRepository.save(userSaved)
+
+        return {
+          Status: 'Success',
+          Message: 'first access status successfully modified'
+        }
+      }
 
       return {
-        Status: 'Success',
-        Message: 'first access status successfully modified'
+        Status: 'Fail',
+        Message: 'This is not the first login since this user'
       }
-    }
 
-    return {
-      Status: 'Fail',
-      Message: 'This is not the first login since this user'
+    } catch (error) {
+      this.logger.error(`changeFirstAccess error: ${error.message}`, error.stack)
     }
 
   }
 
   async changePassword(id: number, currentPassword: string, firstPass: string, secondPass: string) {
 
-    Validations.getInstance().validateWithRegex(
-      `${id}`,
-      ValidType.IS_NUMBER
-    )
+    try {
 
-    if (id > ObjectSize.INTEGER) {
-      throw new BadRequestException(`Invalid id number`)
-    }
+      Validations.getInstance().validateWithRegex(
+        `${id}`,
+        ValidType.IS_NUMBER
+      )
 
-    if (firstPass !== secondPass) {
-      throw new BadRequestException(`Passwords do not match`)
-    }
+      if (id > ObjectSize.INTEGER) {
+        throw new BadRequestException(`Invalid id number`)
+      }
 
-    const user = await this.findById(id)
+      if (firstPass !== secondPass) {
+        throw new BadRequestException(`Passwords do not match`)
+      }
 
-    if (!user) {
-      throw new NotFoundException(`user with id ${id} does not exist`)
-    }
+      const user = await this.findById(id)
 
-    const checkPass = bcrypt.compareSync(currentPassword, user.user_password);
+      if (!user) {
+        throw new NotFoundException(`user with id ${id} does not exist`)
+      }
 
-    if (!checkPass) {
-      throw new BadRequestException(`Entered password is incorrect`)
-    }
+      const checkPass = bcrypt.compareSync(currentPassword, user.user_password);
 
-    Validations.getInstance().validateWithRegex(
-      firstPass,
-      ValidType.NO_SPACE
-    )
+      if (!checkPass) {
+        throw new BadRequestException(`Entered password is incorrect`)
+      }
 
-    Validations.getInstance().verifyLength(
-      firstPass.trim(), 'Password', 5, 10
-    )
+      Validations.getInstance().validateWithRegex(
+        firstPass,
+        ValidType.NO_SPACE
+      )
 
-    user.user_password = await Utils.getInstance().encryptPassword(firstPass)
+      Validations.getInstance().verifyLength(
+        firstPass.trim(), 'Password', 5, 10
+      )
 
-    user.user_first_access = false
+      user.user_password = await Utils.getInstance().encryptPassword(firstPass)
 
-    await this.userRepository.save(user)
+      user.user_first_access = false
 
-    return {
-      Status: 'Success',
-      Message: 'Password changed successfully'
+      await this.userRepository.save(user)
+
+      return {
+        Status: 'Success',
+        Message: 'Password changed successfully'
+      }
+
+    } catch (error) {
+      this.logger.error(`changePass error: ${error.message}`, error.stack)
     }
 
   }
 
   async resetPassword(email: string): Promise<UserEntity> {
 
-    Validations.getInstance().validateWithRegex(
-      email,
-      ValidType.IS_EMAIL,
-      ValidType.NO_SPACE
-    )
+    try {
 
-    const user = await this.findByEmail(email)
-    if (!user) {
-      throw new NotFoundException(`user with email ${email} does not exist`)
+      Validations.getInstance().validateWithRegex(
+        email,
+        ValidType.IS_EMAIL,
+        ValidType.NO_SPACE
+      )
+
+      const user = await this.findByEmail(email)
+      if (!user) {
+        throw new NotFoundException(`user with email ${email} does not exist`)
+      }
+
+      const hasPass = await Utils.getInstance().encryptPassword(`${new Date().getFullYear()}`)
+
+      const newPass = hasPass.substring(20, 28)
+
+      user.user_password = await Utils.getInstance().encryptPassword(newPass)
+
+      user.user_first_access = true
+
+      const userSaved = await this.userRepository.save(user)
+
+      userSaved.user_password = newPass
+
+      return userSaved
+
+    } catch (error) {
+      this.logger.error(`resetPass error: ${error.message}`, error.stack)
     }
-
-    const hasPass = await Utils.getInstance().encryptPassword(`${new Date().getFullYear()}`)
-
-    const newPass = hasPass.substring(20, 28)
-
-    user.user_password = await Utils.getInstance().encryptPassword(newPass)
-
-    user.user_first_access = true
-
-    const userSaved = await this.userRepository.save(user)
-
-    userSaved.user_password = newPass
-
-    return userSaved
-
   }
 
 
 
   async haveAdmin(name: string) {
-    const admin = await this.userRepository.findOne({
-      where: {
-        user_name: name.toUpperCase()
-      }
-    })
 
-    if (admin) {
-      return true
-    } else {
-      return false
+    try {
+
+      const admin = await this.userRepository.findOne({
+        where: {
+          user_name: name.toUpperCase()
+        }
+      })
+
+      if (admin) {
+        return true
+      } else {
+        return false
+      }
+
+    } catch (error) {
+      this.logger.error(`haveAdmin error: ${error.message}`, error.stack)
     }
 
   }
@@ -427,36 +495,36 @@ export class UserService {
 
   async recoverCode(email: string) {
 
+    try {
+      const user = await this.findByEmail(email)
 
 
-    const user = await this.findByEmail(email)
+      if (!user) {
+        throw new NotFoundException(`O email informado é inválido!`)
+      }
 
+      const code = this.generateCode()
 
-    if (!user) {
-      throw new NotFoundException(`O email informado é inválido!`)
+      user.user_recovery_code = code
+
+      await this.userRepository.save(user)
+
+      const codeRecover: CodeRecoverInterface = {
+        name: user.user_name,
+        code: code,
+        email: user.user_email
+      }
+
+      this.mailservice.sendMail(codeRecover)
+
+      setTimeout(async () => {
+        await this.clearCode(user)
+      }, 5 * 60 * 1000)
+    } catch (error) {
+      this.logger.error(`recoverCode error: ${error.message}`, error.stack);
     }
 
-    const code = this.generateCode()
 
-    user.user_recovery_code = code
-
-
-
-    const userSaved = await this.userRepository.save(user)
-
-    console.log('UserSaved: ', userSaved);
-
-    const codeRecover: CodeRecoverInterface = {
-      name: user.user_name,
-      code: code,
-      email: user.user_email
-    }
-
-    this.mailservice.sendMail(codeRecover)
-
-    setTimeout(async () => {
-      await this.clearCode(user)
-    }, 5 * 60 * 1000)
   }
 
   async clearCode(user: UserEntity) {
