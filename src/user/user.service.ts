@@ -521,6 +521,8 @@ export class UserService {
       const code = this.generateCode()
 
       user.user_recovery_code = code
+      user.user_recovery_date = new Date()
+
 
       await this.userRepository.save(user)
 
@@ -535,6 +537,8 @@ export class UserService {
       setTimeout(async () => {
         await this.clearCode(user)
       }, 5 * 60 * 1000)
+
+
     } catch (error) {
       this.logger.error(`recoverCode error: ${error.message}`, error.stack);
       throw error

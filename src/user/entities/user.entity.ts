@@ -1,5 +1,5 @@
 import { ProfileEntity } from "src/profile/entities/profile.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 
 @Entity('USER')
@@ -17,6 +17,12 @@ export class UserEntity {
     @Column({ nullable: true })
     user_recovery_code: number
 
+    @Column({ nullable: true })
+    user_attempts_to_recover: number
+
+    @Column({ nullable: true })
+    user_recovery_date: Date
+
     @Column()
     user_password: string
 
@@ -33,8 +39,12 @@ export class UserEntity {
     @JoinColumn({ name: 'user_profile_id' })
     profile: ProfileEntity
 
-    @Column({
-        nullable: true
-    })
+    @Column({ nullable: true })
     user_refresh_token: string;
+
+    @CreateDateColumn()
+    create_at: Date
+
+    @UpdateDateColumn()
+    update_at: Date
 }
