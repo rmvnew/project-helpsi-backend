@@ -17,6 +17,7 @@ import { UserEntity } from './entities/user.entity';
 @Injectable()
 export class UserService {
 
+  private readonly logger = new Logger(UserService.name)
 
   constructor(
     @InjectRepository(UserEntity)
@@ -24,7 +25,7 @@ export class UserService {
     @InjectRepository(ProfileEntity)
     private readonly profileRepository: Repository<ProfileEntity>,
     private readonly mailservice: MailService,
-    private readonly logger = new Logger(UserService.name)
+
   ) { }
 
 
