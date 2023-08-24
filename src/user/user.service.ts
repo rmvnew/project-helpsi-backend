@@ -92,6 +92,7 @@ export class UserService {
       return this.userRepository.save(user)
     } catch (error) {
       this.logger.error(`createUser error: ${error.message}`, error.stack);
+      throw error
     }
 
   }
@@ -101,6 +102,7 @@ export class UserService {
       return this.profileRepository.find()
     } catch (error) {
       this.logger.error(`findAllProfiles error: ${error.message}`, error.stack)
+      throw error
     }
   }
 
@@ -113,6 +115,7 @@ export class UserService {
       })
     } catch (error) {
       this.logger.error(`findProfileById error: ${error.message}`, error.stack)
+      throw error
     }
   }
 
@@ -156,6 +159,7 @@ export class UserService {
 
     } catch (error) {
       this.logger.error(`findAll error: ${error.message}`, error.stack)
+      throw error
     }
 
   }
@@ -168,6 +172,7 @@ export class UserService {
         .getOne()
     } catch (error) {
       this.logger.error(`findByEmail error: ${error.message}`, error.stack)
+      throw error
     }
   }
 
@@ -188,6 +193,7 @@ export class UserService {
 
     } catch (error) {
       this.logger.error(`findById error: ${error.message}`, error.stack)
+      throw error
     }
 
   }
@@ -201,6 +207,7 @@ export class UserService {
       })
     } catch (error) {
       this.logger.error(`findByName error: ${error.message}`, error.stack)
+      throw error
     }
   }
 
@@ -273,6 +280,7 @@ export class UserService {
 
     } catch (error) {
       this.logger.error(`updateUser error: ${error.message}`, error.stack)
+      throw error
     }
   }
 
@@ -306,6 +314,7 @@ export class UserService {
 
     } catch (error) {
       this.logger.error(`changeStatus error: ${error.message}`, error.stack)
+      throw error
     }
   }
 
@@ -334,6 +343,7 @@ export class UserService {
 
     } catch (error) {
       this.logger.error(`updateRefreshToken error: ${error.message}`, error.stack)
+      throw error
     }
   }
 
@@ -376,6 +386,7 @@ export class UserService {
 
     } catch (error) {
       this.logger.error(`changeFirstAccess error: ${error.message}`, error.stack)
+      throw error
     }
 
   }
@@ -431,6 +442,7 @@ export class UserService {
 
     } catch (error) {
       this.logger.error(`changePass error: ${error.message}`, error.stack)
+      throw error
     }
 
   }
@@ -466,6 +478,7 @@ export class UserService {
 
     } catch (error) {
       this.logger.error(`resetPass error: ${error.message}`, error.stack)
+      throw error
     }
   }
 
@@ -489,6 +502,7 @@ export class UserService {
 
     } catch (error) {
       this.logger.error(`haveAdmin error: ${error.message}`, error.stack)
+      throw error
     }
 
   }
@@ -523,6 +537,7 @@ export class UserService {
       }, 5 * 60 * 1000)
     } catch (error) {
       this.logger.error(`recoverCode error: ${error.message}`, error.stack);
+      throw error
     }
 
 
