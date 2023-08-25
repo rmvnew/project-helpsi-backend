@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Pagination, paginate } from 'nestjs-typeorm-paginate';
@@ -6,6 +6,7 @@ import { ObjectSize, SortingType, ValidType } from 'src/common/Enums';
 import { Utils } from 'src/common/Utils';
 import { CodeRecoverInterface } from 'src/common/interfaces/email.interface';
 import { Validations } from 'src/common/validations';
+import { HistoricRecover } from 'src/historic-recover/entities/historic-recover.entity';
 import { HistoricRecoverService } from 'src/historic-recover/historic-recover.service';
 import { MailService } from 'src/mail/mail.service';
 import { ProfileEntity } from 'src/profile/entities/profile.entity';
@@ -27,7 +28,9 @@ export class UserService {
     @InjectRepository(ProfileEntity)
     private readonly profileRepository: Repository<ProfileEntity>,
     private readonly mailservice: MailService,
-    private readonly historicRecoverService: HistoricRecoverService
+    private readonly historicRecoverService: HistoricRecoverService,
+    @InjectRepository(HistoricRecover)
+    private readonly historicRecoverRepository: Repository<HistoricRecover>
 
   ) { }
 
@@ -523,13 +526,29 @@ export class UserService {
       // ##########
 
 
+      const currentDate = this.getCurrentDate()
 
-      const historic: CreateHistoricRecoverDto = {
-        historicQuantity: 1,
-        user: user
+      const currentHistoric = await this.historicRecoverService.findByDate(currentDate, user.user_id)
+
+      if (currentHistoric) {
+
+        if (currentHistoric.historicQuantity >= 3) {
+          throw new BadGatewayException(`Número maximo de tentativas diarias excedido!`)
+        }
+
+        console.log('CurrentHistoric: ', currentHistoric);
+
+        currentHistoric.historicQuantity = currentHistoric.historicQuantity + 1
+        this.historicRecoverRepository.save(currentHistoric)
+
+      } else {
+        const historic: CreateHistoricRecoverDto = {
+          historicQuantity: 1,
+          user: user
+        }
+
+        this.historicRecoverService.create(historic)
       }
-
-      this.historicRecoverService.create(historic)
 
       // ##########
 
@@ -561,6 +580,18 @@ export class UserService {
       throw error
     }
 
+
+  }
+
+
+  getCurrentDate() {
+
+    const currentdate = new Date()
+    const day: string = String(currentdate.getDate()).padStart(2, '0')
+    const month: string = String(currentdate.getMonth() + 1).padStart(2, '0')
+    const year: number = currentdate.getFullYear()
+
+    return `${year}-${month}-${day}`
 
   }
 

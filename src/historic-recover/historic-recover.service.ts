@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateHistoricRecoverDto } from './dto/create-historic-recover.dto';
-import { UpdateHistoricRecoverDto } from './dto/update-historic-recover.dto';
 import { HistoricRecover } from './entities/historic-recover.entity';
 
 @Injectable()
@@ -26,19 +25,14 @@ export class HistoricRecoverService {
     this.historicRepository.save(historic)
   }
 
-  findAll() {
-    return `This action returns all historicRecover`;
+  async findByDate(date: string, userId: number) {
+
+    return this.historicRepository.createQueryBuilder('historic')
+      .where("DATE(historic.historicRecoverDate) = :date", { date: date.toString().split('T')[0] })
+      .andWhere('historic.user = :user', { user: userId })
+      .getOne()
+
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} historicRecover`;
-  }
 
-  update(id: number, updateHistoricRecoverDto: UpdateHistoricRecoverDto) {
-    return `This action updates a #${id} historicRecover`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} historicRecover`;
-  }
 }

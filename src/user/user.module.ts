@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { HistoricRecover } from 'src/historic-recover/entities/historic-recover.entity';
 import { HistoricRecoverModule } from 'src/historic-recover/historic-recover.module';
 import { EmailModule } from 'src/mail/mail.module';
 import { ProfileEntity } from 'src/profile/entities/profile.entity';
@@ -9,7 +10,7 @@ import { UserService } from './user.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserEntity, ProfileEntity]),
+    TypeOrmModule.forFeature([UserEntity, ProfileEntity, HistoricRecover]),
     EmailModule,
     HistoricRecoverModule
 

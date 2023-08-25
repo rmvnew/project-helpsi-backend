@@ -1,5 +1,5 @@
+import { HistoricRecover } from "src/historic-recover/entities/historic-recover.entity";
 import { ProfileEntity } from "src/profile/entities/profile.entity";
-import { HistoricRecover } from "src/recover-historic/entities/recover-historic.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 
