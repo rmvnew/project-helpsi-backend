@@ -6,9 +6,11 @@ import { ObjectSize, SortingType, ValidType } from 'src/common/Enums';
 import { Utils } from 'src/common/Utils';
 import { CodeRecoverInterface } from 'src/common/interfaces/email.interface';
 import { Validations } from 'src/common/validations';
+import { HistoricRecoverService } from 'src/historic-recover/historic-recover.service';
 import { MailService } from 'src/mail/mail.service';
 import { ProfileEntity } from 'src/profile/entities/profile.entity';
 import { Repository } from 'typeorm';
+import { CreateHistoricRecoverDto } from '../historic-recover/dto/create-historic-recover.dto';
 import { FilterUser } from './dto/Filter.user';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -25,6 +27,7 @@ export class UserService {
     @InjectRepository(ProfileEntity)
     private readonly profileRepository: Repository<ProfileEntity>,
     private readonly mailservice: MailService,
+    private readonly historicRecoverService: HistoricRecoverService
 
   ) { }
 
@@ -517,6 +520,18 @@ export class UserService {
       if (!user) {
         throw new NotFoundException(`O email informado é inválido!`)
       }
+      // ##########
+
+
+
+      const historic: CreateHistoricRecoverDto = {
+        historicQuantity: 1,
+        user: user
+      }
+
+      this.historicRecoverService.create(historic)
+
+      // ##########
 
       const code = this.generateCode()
 
@@ -531,6 +546,8 @@ export class UserService {
         code: code,
         email: user.user_email
       }
+
+
 
       this.mailservice.sendMail(codeRecover)
 

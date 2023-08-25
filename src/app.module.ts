@@ -6,10 +6,10 @@ import { Bootstrap } from './config/bootstrap';
 import { DatabaseModule } from './config/database/database.module';
 import { ConfigModule } from './config/environments/config.module';
 import { SwaggerModule } from './config/swagger/swagger.module';
+import { HistoricRecoverModule } from './historic-recover/historic-recover.module';
 import { EmailModule } from './mail/mail.module';
 import { ProfileModule } from './profile/profile.module';
 import { UserModule } from './user/user.module';
-import { RecoverHistoricModule } from './recover-historic/recover-historic.module';
 
 @Module({
   imports: [
@@ -20,7 +20,7 @@ import { RecoverHistoricModule } from './recover-historic/recover-historic.modul
     SwaggerModule,
     ProfileModule,
     EmailModule,
-    RecoverHistoricModule
+    HistoricRecoverModule
   ],
   controllers: [],
   providers: [
