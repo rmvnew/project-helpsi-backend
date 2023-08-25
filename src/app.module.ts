@@ -9,6 +9,7 @@ import { SwaggerModule } from './config/swagger/swagger.module';
 import { EmailModule } from './mail/mail.module';
 import { ProfileModule } from './profile/profile.module';
 import { UserModule } from './user/user.module';
+import { RecoverHistoricModule } from './recover-historic/recover-historic.module';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { UserModule } from './user/user.module';
     DatabaseModule,
     SwaggerModule,
     ProfileModule,
-    EmailModule
+    EmailModule,
+    RecoverHistoricModule
   ],
   controllers: [],
   providers: [

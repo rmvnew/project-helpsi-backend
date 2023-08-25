@@ -1,5 +1,6 @@
 import { ProfileEntity } from "src/profile/entities/profile.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { HistoricRecover } from "src/recover-historic/entities/recover-historic.entity";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 
 @Entity('USER')
@@ -47,4 +48,7 @@ export class UserEntity {
 
     @UpdateDateColumn()
     update_at: Date
+
+    @OneToMany(() => HistoricRecover, recover => recover.user)
+    historics: HistoricRecover[];
 }
