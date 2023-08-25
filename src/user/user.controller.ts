@@ -4,6 +4,7 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import AccessProfile from 'src/auth/enums/permission.type';
 import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
 import { PublicRoute } from 'src/common/decorators/public_route.decorator';
+import { RecoverInterface } from 'src/common/interfaces/recover.interface';
 import { getUserPath } from 'src/common/routes.path';
 import { ProfileEntity } from 'src/profile/entities/profile.entity';
 import { FilterUser } from './dto/Filter.user';
@@ -81,12 +82,21 @@ export class UserController {
     return this.userService.changePassword(id, currentPass, firstPass, secondPass)
   }
 
-  @Patch('/resetPass/:email')
+  @Post('/resetPass')
   @PublicRoute()
   async resetPassword(
-    @Param('email') email: string
+    @Query('code') code: number,
+    @Query('password') password: string,
+    @Query('email') email: string,
   ) {
-    return this.userService.resetPassword(email)
+
+    const recover: RecoverInterface = {
+      email: email,
+      code: code,
+      password: password
+    }
+
+    return this.userService.resetPassword(recover)
   }
 
 

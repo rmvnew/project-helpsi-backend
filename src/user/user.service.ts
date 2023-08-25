@@ -5,6 +5,7 @@ import { Pagination, paginate } from 'nestjs-typeorm-paginate';
 import { ObjectSize, SortingType, ValidType } from 'src/common/Enums';
 import { Utils } from 'src/common/Utils';
 import { CodeRecoverInterface } from 'src/common/interfaces/email.interface';
+import { RecoverInterface } from 'src/common/interfaces/recover.interface';
 import { Validations } from 'src/common/validations';
 import { HistoricRecover } from 'src/historic-recover/entities/historic-recover.entity';
 import { HistoricRecoverService } from 'src/historic-recover/historic-recover.service';
@@ -453,34 +454,29 @@ export class UserService {
 
   }
 
-  async resetPassword(email: string): Promise<UserEntity> {
+  async resetPassword(recover: RecoverInterface) {
+
+    console.log('Recover: ', recover);
 
     try {
 
-      Validations.getInstance().validateWithRegex(
-        email,
-        ValidType.IS_EMAIL,
-        ValidType.NO_SPACE
-      )
+      const { code, password, email } = recover
 
-      const user = await this.findByEmail(email)
+      const user = await this.userRepository.findOne({
+        where: {
+          user_email: email,
+          user_recovery_code: code
+        }
+      })
+
       if (!user) {
-        throw new NotFoundException(`user with email ${email} does not exist`)
+        throw new BadRequestException(`O email: ${email} e/ou código: ${code} são inválidos!`)
       }
 
-      const hasPass = await Utils.getInstance().encryptPassword(`${new Date().getFullYear()}`)
+      user.user_password = await Utils.getInstance().encryptPassword(password)
+      user.user_recovery_code = null
 
-      const newPass = hasPass.substring(20, 28)
-
-      user.user_password = await Utils.getInstance().encryptPassword(newPass)
-
-      user.user_first_access = true
-
-      const userSaved = await this.userRepository.save(user)
-
-      userSaved.user_password = newPass
-
-      return userSaved
+      this.userRepository.save(user)
 
     } catch (error) {
       this.logger.error(`resetPass error: ${error.message}`, error.stack)
@@ -523,7 +519,6 @@ export class UserService {
       if (!user) {
         throw new NotFoundException(`O email informado é inválido!`)
       }
-      // ##########
 
 
       const currentDate = this.getCurrentDate()
@@ -550,7 +545,6 @@ export class UserService {
         this.historicRecoverService.create(historic)
       }
 
-      // ##########
 
       const code = this.generateCode()
 
@@ -608,6 +602,9 @@ export class UserService {
     const randomNumber = Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
     return randomNumber
   }
+
+
+
 
 
 }
