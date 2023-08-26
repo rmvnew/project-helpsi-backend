@@ -3,12 +3,12 @@ https://docs.nestjs.com/providers#services
 */
 
 import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import * as bcrypt from 'bcrypt'
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import { hash, isMatchHash } from 'src/common/hash';
 import { UserService } from 'src/user/user.service';
 import { LoginDTO } from '../dto/login.dto';
-import { ConfigService } from '@nestjs/config';
-import { hash, isMatchHash } from 'src/common/hash';
 import Tokens from '../interfaces/tokens';
 
 
@@ -33,7 +33,7 @@ export class AuthService {
         if (user && checkPass) {
 
             return user
-            
+
         }
 
         return null;
@@ -41,9 +41,11 @@ export class AuthService {
 
     async login(user: LoginDTO) {
 
+        console.log(user);
+
         const userSaved = await this.userService.findByEmail(user.email);
 
-        if(userSaved.user_status === false){
+        if (userSaved.user_status === false) {
             throw new BadRequestException(`Usuário ${userSaved.user_name} não está ativo no sistema!`)
         }
 

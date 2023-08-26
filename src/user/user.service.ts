@@ -456,8 +456,6 @@ export class UserService {
 
   async resetPassword(recover: RecoverInterface) {
 
-    console.log('Recover: ', recover);
-
     try {
 
       const { code, password, email } = recover

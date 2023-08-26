@@ -2,7 +2,7 @@
 https://docs.nestjs.com/controllers#controllers
 */
 
-import { Controller, Post, Body,Request, UseGuards, HttpCode } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Request, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { PublicRoute } from 'src/common/decorators/public_route.decorator';
 import { LoginDTO } from './dto/login.dto';
@@ -10,7 +10,7 @@ import { AuthService } from './shared/auth.service';
 import { JwtAuthGuard } from './shared/guards/jwt-auth.guard';
 import { JwtRefreshAuthGuard } from './shared/guards/jwt.refresh-auth.guard';
 import { LocalAuthGuard } from './shared/guards/local-auth.guard';
- 
+
 
 @ApiTags('Login')
 @Controller('auth')
@@ -20,7 +20,7 @@ export class AuthController {
         private authService: AuthService,
     ) { }
 
-   
+
     @Post('/login')
     @PublicRoute()
     @HttpCode(200)
@@ -41,9 +41,18 @@ export class AuthController {
     @PublicRoute()
     @UseGuards(JwtRefreshAuthGuard)
     async refreshToken(@Request() payload: any) {
-        
+
         return this.authService.refreshToken(payload.user.id, payload.user.refresh_token);
     }
+
+
+    @Post('/validate')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    validateToken(@Request() req): any {
+        return { userId: req.user.sub, name: req.user.name };
+    }
+
 
 
 }
