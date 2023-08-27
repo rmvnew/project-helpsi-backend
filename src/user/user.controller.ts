@@ -26,7 +26,7 @@ export class UserController {
   // @PublicRoute()
   async create(
     @Body() createUserDto: CreateUserDto
-  ): Promise<UserEntity> {
+  ): Promise<UserResponseDto> {
     return this.userService.create(createUserDto);
   }
 

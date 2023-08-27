@@ -39,7 +39,7 @@ export class UserService {
 
 
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
 
     try {
       const {
@@ -104,7 +104,15 @@ export class UserService {
       user.setTwoFactorSecret()
       user.user_2fa_active = user_2fa_active
 
-      return this.userRepository.save(user)
+      const userSaved = this.userRepository.save(user)
+
+
+      const userDto: UserResponseDto = plainToClass(UserResponseDto, userSaved, {
+        excludeExtraneousValues: true
+      });
+
+      return userDto
+
     } catch (error) {
       this.logger.error(`createUser error: ${error.message}`, error.stack);
       throw error
