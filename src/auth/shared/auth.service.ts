@@ -41,8 +41,6 @@ export class AuthService {
 
     async login(user: LoginDTO) {
 
-        console.log(user);
-
         const userSaved = await this.userService.findByEmail(user.email);
 
         if (userSaved.user_status === false) {
