@@ -468,7 +468,7 @@ export class UserService {
       })
 
       if (!user) {
-        throw new BadRequestException(`O email: ${email} e/ou código: ${code} são inválidos!`)
+        throw new BadRequestException(`O código: ${code} não é válido!`)
       }
 
       user.user_password = await Utils.getInstance().encryptPassword(password)
