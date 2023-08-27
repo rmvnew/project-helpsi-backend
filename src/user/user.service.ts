@@ -154,8 +154,9 @@ export class UserService {
 
       if (user_name) {
 
+
         queryBuilder
-          .where(`user.user_name like :user_name`, {
+          .where(`user.user_name ILIKE :user_name`, {
             user_name: `%${user_name}%`
           })
 
@@ -209,8 +210,33 @@ export class UserService {
     }
   }
 
-  async findById(id: number): Promise<UserResponseDto> {
+
+  async findUserByEmail(email: string) {
+
     try {
+
+      const user = this.userRepository.createQueryBuilder('user')
+        .leftJoinAndSelect('user.profile', 'profile')
+        .where('user.user_email = :user_email', { user_email: email })
+        .getOne()
+
+      const userDto: UserResponseDto = plainToClass(UserResponseDto, user, {
+        excludeExtraneousValues: true
+      });
+
+      return userDto
+
+    } catch (error) {
+      this.logger.error(`findByEmail error: ${error.message}`, error.stack)
+      throw error
+    }
+  }
+
+
+  async findById(id: number): Promise<UserResponseDto> {
+
+    try {
+
       Validations.getInstance().validateWithRegex(
         `${id}`,
         ValidType.IS_NUMBER
@@ -236,6 +262,7 @@ export class UserService {
     }
 
   }
+
 
   async findByName(name: string): Promise<UserResponseDto> {
     try {

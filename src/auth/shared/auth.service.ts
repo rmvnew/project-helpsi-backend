@@ -62,6 +62,7 @@ export class AuthService {
             access_token: access_token,
             refresh_token: refresh_token,
             name: userSaved.user_name,
+            login: userSaved.user_email,
             profile: userSaved.profile.profile_name,
             expires_in: this.configService.get('auth.token_expires_in')
         }

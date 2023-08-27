@@ -48,30 +48,6 @@ export class UserController {
     return this.userService.findAll(filter);
   }
 
-  @Get(':id')
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
-  async findOne(
-    @Param('id') id: number
-  ): Promise<UserResponseDto> {
-    return this.userService.findById(id);
-  }
-
-  @Put(':id')
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
-  async update(
-    @Param('id') id: string,
-    @Body() updateUserDto: UpdateUserDto
-  ): Promise<UserResponseDto> {
-    return this.userService.update(+id, updateUserDto);
-  }
-
-  @Patch('/status/:id')
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
-  async changeStatus(
-    @Param('id') id: number
-  ): Promise<UserEntity> {
-    return this.userService.changeStatus(id);
-  }
 
   @Patch('/change-password/:id/:currentPass/:firstPass/:secondPass')
   @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
@@ -110,6 +86,40 @@ export class UserController {
     return this.userService.recoverCode(email)
   }
 
+
+  @Get('/userEmail')
+  @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
+  async getUserByEmail(
+    @Query('email') email: string
+  ) {
+
+    return this.userService.findUserByEmail(email)
+  }
+
+  @Get(':id')
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
+  async findOne(
+    @Param('id') id: number
+  ): Promise<UserResponseDto> {
+    return this.userService.findById(id);
+  }
+
+  @Put(':id')
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto
+  ): Promise<UserResponseDto> {
+    return this.userService.update(+id, updateUserDto);
+  }
+
+  @Patch('/status/:id')
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
+  async changeStatus(
+    @Param('id') id: number
+  ): Promise<UserEntity> {
+    return this.userService.changeStatus(id);
+  }
 
 
 }

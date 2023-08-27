@@ -15,6 +15,9 @@ export class UserResponseDto {
     user_status: boolean
 
     @Expose()
+    user_2fa_active: boolean
+
+    @Expose()
     user_enrollment: string
 
     @Expose()
