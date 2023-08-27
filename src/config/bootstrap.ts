@@ -36,7 +36,8 @@ export class Bootstrap {
                 user_email: 'sysadmin@email.com',
                 user_password: process.env.SYSADMIN_PASS,
                 user_profile_id: currentProfile.profile_id,
-                user_2fa_active: false
+                user_2fa_active: false,
+                user_enrollment: '00001'
             }
 
             this.userService.create(user)

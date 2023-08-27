@@ -5,9 +5,12 @@ https://docs.nestjs.com/providers#services
 import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { hash, isMatchHash } from 'src/common/hash';
+import { UserEntity } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
+import { Repository } from 'typeorm';
 import { LoginDTO } from '../dto/login.dto';
 import Tokens from '../interfaces/tokens';
 
@@ -17,7 +20,9 @@ export class AuthService {
     constructor(
         private userService: UserService,
         private jwtService: JwtService,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        @InjectRepository(UserEntity)
+        private readonly userRepository: Repository<UserEntity>
     ) { }
 
     async validateUser(userEmail: string, userPassword: string) {
@@ -63,7 +68,11 @@ export class AuthService {
     }
 
     async refreshToken(id: number, refreshToken: string) {
-        const user = await this.userService.findById(id)
+        const user = await this.userRepository.findOne({
+            where: {
+                user_id: id
+            }
+        })
 
         if (!user) {
             throw new HttpException('User with this enrollment does not exist', HttpStatus.NOT_FOUND);

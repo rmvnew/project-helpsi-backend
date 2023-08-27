@@ -8,6 +8,9 @@ export class CreateUserDto {
     user_email: string
 
     @ApiProperty()
+    user_enrollment: string
+
+    @ApiProperty()
     user_password: string
 
     @ApiProperty()

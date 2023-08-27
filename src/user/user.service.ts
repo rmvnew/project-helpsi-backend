@@ -1,6 +1,7 @@
 import { BadGatewayException, BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { plainToClass } from 'class-transformer';
 import { Pagination, paginate } from 'nestjs-typeorm-paginate';
 import { ObjectSize, SortingType, ValidType } from 'src/common/Enums';
 import { Utils } from 'src/common/Utils';
@@ -16,6 +17,7 @@ import { CreateHistoricRecoverDto } from '../historic-recover/dto/create-histori
 import { FilterUser } from './dto/Filter.user';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserResponseDto } from './dto/user.response.dto';
 import { UserEntity } from './entities/user.entity';
 
 @Injectable()
@@ -134,7 +136,7 @@ export class UserService {
 
 
 
-  async findAll(filter: FilterUser): Promise<Pagination<UserEntity>> {
+  async findAll(filter: FilterUser): Promise<Pagination<UserResponseDto>> {
 
     try {
       const { sort, orderBy, user_name } = filter
@@ -163,12 +165,21 @@ export class UserService {
 
       const page = await paginate<UserEntity>(queryBuilder, filter)
 
-      page.links.first = page.links.first === '' ? '' : `${page.links.first}&sort=${sort}&orderBy=${orderBy}`
-      page.links.previous = page.links.previous === '' ? '' : `${page.links.previous}&sort=${sort}&orderBy=${orderBy}`
-      page.links.last = page.links.last === '' ? '' : `${page.links.last}&sort=${sort}&orderBy=${orderBy}`
-      page.links.next = page.links.next === '' ? '' : `${page.links.next}&sort=${sort}&orderBy=${orderBy}`
+      const userDtos: UserResponseDto[] = plainToClass(UserResponseDto, page.items, {
+        excludeExtraneousValues: true
+      });
 
-      return page
+      const transformedPage = {
+        ...page,
+        items: userDtos,
+      };
+
+      transformedPage.links.first = transformedPage.links.first === '' ? '' : `${transformedPage.links.first}&sort=${sort}&orderBy=${orderBy}`;
+      transformedPage.links.previous = transformedPage.links.previous === '' ? '' : `${transformedPage.links.previous}&sort=${sort}&orderBy=${orderBy}`;
+      transformedPage.links.last = transformedPage.links.last === '' ? '' : `${transformedPage.links.last}&sort=${sort}&orderBy=${orderBy}`;
+      transformedPage.links.next = transformedPage.links.next === '' ? '' : `${transformedPage.links.next}&sort=${sort}&orderBy=${orderBy}`;
+
+      return transformedPage;
 
     } catch (error) {
       this.logger.error(`findAll error: ${error.message}`, error.stack)
@@ -183,13 +194,14 @@ export class UserService {
         .leftJoinAndSelect('user.profile', 'profile')
         .where('user.user_email = :user_email', { user_email: email })
         .getOne()
+
     } catch (error) {
       this.logger.error(`findByEmail error: ${error.message}`, error.stack)
       throw error
     }
   }
 
-  async findById(id: number): Promise<UserEntity> {
+  async findById(id: number): Promise<UserResponseDto> {
     try {
       Validations.getInstance().validateWithRegex(
         `${id}`,
@@ -199,10 +211,16 @@ export class UserService {
         throw new BadRequestException(`Invalid id number`)
       }
 
-      return this.userRepository.createQueryBuilder('user')
+      const user = await this.userRepository.createQueryBuilder('user')
         .leftJoinAndSelect('user.profile', 'profile')
         .where('user.user_id = :user_id', { user_id: id })
         .getOne()
+
+      const userDto: UserResponseDto = plainToClass(UserResponseDto, user, {
+        excludeExtraneousValues: true
+      });
+
+      return userDto
 
     } catch (error) {
       this.logger.error(`findById error: ${error.message}`, error.stack)
@@ -211,20 +229,28 @@ export class UserService {
 
   }
 
-  async findByName(name: string): Promise<UserEntity> {
+  async findByName(name: string): Promise<UserResponseDto> {
     try {
-      return this.userRepository.findOne({
+      const user = await this.userRepository.findOne({
         where: {
           user_name: name
         }
       })
+
+
+      const userDto: UserResponseDto = plainToClass(UserResponseDto, user, {
+        excludeExtraneousValues: true
+      })
+
+      return userDto
+
     } catch (error) {
       this.logger.error(`findByName error: ${error.message}`, error.stack)
       throw error
     }
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
 
     try {
       Validations.getInstance().validateWithRegex(
@@ -344,7 +370,11 @@ export class UserService {
         throw new BadRequestException(`Invalid id number`)
       }
 
-      const user = await this.findById(id)
+      const user = await this.userRepository.findOne({
+        where: {
+          user_id: id
+        }
+      })
 
       if (!user) {
         throw new NotFoundException(`user with id ${id} does not exist`)
@@ -372,7 +402,13 @@ export class UserService {
         throw new BadRequestException(`Invalid id number`)
       }
 
-      const userSaved = await this.findById(id)
+
+
+      const userSaved = await this.userRepository.findOne({
+        where: {
+          user_id: id
+        }
+      })
 
       if (!userSaved) {
         throw new NotFoundException(`user with id ${id} does not exist`)
@@ -421,7 +457,11 @@ export class UserService {
         throw new BadRequestException(`Passwords do not match`)
       }
 
-      const user = await this.findById(id)
+      const user = await this.userRepository.findOne({
+        where: {
+          user_id: id
+        }
+      })
 
       if (!user) {
         throw new NotFoundException(`user with id ${id} does not exist`)

@@ -1,17 +1,19 @@
-import { AuthController } from './auth.controller';
 import { Module } from '@nestjs/common';
-import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from "@nestjs/jwt";
+import { PassportModule } from '@nestjs/passport';
+import { AuthController } from './auth.controller';
 /*
 https://docs.nestjs.com/modules
 */
 
-import { AuthService } from './shared/auth.service';
-import { LocalStrategy } from './shared/strategies/local.strategy';
-import { UserModule } from 'src/user/user.module';
 import { ConfigModule } from '@nestjs/config';
-import { JwtStrategy } from './shared/strategies/jwt.strategy';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserEntity } from 'src/user/entities/user.entity';
+import { UserModule } from 'src/user/user.module';
+import { AuthService } from './shared/auth.service';
 import { JwtRefreshStrategy } from './shared/strategies/jwt-refresh.strategy';
+import { JwtStrategy } from './shared/strategies/jwt.strategy';
+import { LocalStrategy } from './shared/strategies/local.strategy';
 
 @Module({
     imports: [
@@ -21,7 +23,8 @@ import { JwtRefreshStrategy } from './shared/strategies/jwt-refresh.strategy';
             secret: process.env.JWT_SECRET,
             signOptions: { expiresIn: process.env.JWT_EXPIRES_IN },
         }),
-        ConfigModule
+        ConfigModule,
+        TypeOrmModule.forFeature([UserEntity])
     ],
     controllers: [
         AuthController

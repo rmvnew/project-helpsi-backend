@@ -10,6 +10,7 @@ import { ProfileEntity } from 'src/profile/entities/profile.entity';
 import { FilterUser } from './dto/Filter.user';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserResponseDto } from './dto/user.response.dto';
 import { UserEntity } from './entities/user.entity';
 import { UserService } from './user.service';
 
@@ -39,7 +40,8 @@ export class UserController {
   @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
   async findAll(
     @Query() filter: FilterUser
-  ): Promise<Pagination<UserEntity>> {
+  ): Promise<Pagination<UserResponseDto>> {
+
 
     filter.route = getUserPath()
 
@@ -50,7 +52,7 @@ export class UserController {
   @UseGuards(PermissionGuard(AccessProfile.ADMIN))
   async findOne(
     @Param('id') id: number
-  ): Promise<UserEntity> {
+  ): Promise<UserResponseDto> {
     return this.userService.findById(id);
   }
 
@@ -59,7 +61,7 @@ export class UserController {
   async update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto
-  ): Promise<UserEntity> {
+  ): Promise<UserResponseDto> {
     return this.userService.update(+id, updateUserDto);
   }
 
