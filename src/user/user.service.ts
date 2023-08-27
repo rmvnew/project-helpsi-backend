@@ -40,7 +40,13 @@ export class UserService {
   async create(createUserDto: CreateUserDto) {
 
     try {
-      const { user_name, user_profile_id: profile_id, user_email, user_password } = createUserDto
+      const {
+        user_name,
+        user_profile_id: profile_id,
+        user_email,
+        user_password,
+        user_2fa_active
+      } = createUserDto
 
       if (user_name.trim() == '' || user_name == undefined) {
         throw new BadRequestException(`O nome não pode estar vazio`)
@@ -91,10 +97,10 @@ export class UserService {
       }
 
       user.profile = profile
-
       user.user_status = true
-
       user.user_first_access = true
+      user.setTwoFactorSecret()
+      user.user_2fa_active = user_2fa_active
 
       return this.userRepository.save(user)
     } catch (error) {

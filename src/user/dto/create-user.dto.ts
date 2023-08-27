@@ -12,4 +12,7 @@ export class CreateUserDto {
 
     @ApiProperty()
     user_profile_id: number
+
+    @ApiProperty()
+    user_2fa_active: boolean
 }

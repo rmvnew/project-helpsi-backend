@@ -36,7 +36,7 @@ export class UserController {
   }
 
   @Get()
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
+  @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
   async findAll(
     @Query() filter: FilterUser
   ): Promise<Pagination<UserEntity>> {

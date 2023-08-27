@@ -1,7 +1,7 @@
+import * as speakeasy from 'speakeasy';
 import { HistoricRecover } from "src/historic-recover/entities/historic-recover.entity";
 import { ProfileEntity } from "src/profile/entities/profile.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-
 
 @Entity('USER')
 export class UserEntity {
@@ -23,6 +23,12 @@ export class UserEntity {
 
     @Column({ nullable: true })
     user_recovery_date: Date
+
+    @Column({ nullable: true })
+    user_2fa_secret: string
+
+    @Column({ default: false })
+    user_2fa_active: boolean
 
     @Column()
     user_password: string
@@ -51,4 +57,8 @@ export class UserEntity {
 
     @OneToMany(() => HistoricRecover, recover => recover.user)
     historics: HistoricRecover[];
+
+    setTwoFactorSecret() {
+        this.user_2fa_secret = speakeasy.generateSecret({ length: 20 }).base32
+    }
 }
