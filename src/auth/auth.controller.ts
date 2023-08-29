@@ -3,7 +3,7 @@ https://docs.nestjs.com/controllers#controllers
 */
 
 import { Body, Controller, HttpCode, Post, Request, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PublicRoute } from 'src/common/decorators/public_route.decorator';
 import { LoginDTO } from './dto/login.dto';
 import { AuthService } from './shared/auth.service';
@@ -25,6 +25,7 @@ export class AuthController {
     @PublicRoute()
     @HttpCode(200)
     @UseGuards(LocalAuthGuard)
+    @ApiQuery({ name: 'twoFactorCode', required: false })
     async auth(@Body() auth: LoginDTO) {
         return this.authService.login(auth)
     }

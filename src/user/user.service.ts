@@ -1,8 +1,10 @@
-import { BadGatewayException, BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { plainToClass } from 'class-transformer';
 import { Pagination, paginate } from 'nestjs-typeorm-paginate';
+import * as QRCode from 'qrcode';
+import * as speakeasy from 'speakeasy';
 import { ObjectSize, SortingType, ValidType } from 'src/common/Enums';
 import { Utils } from 'src/common/Utils';
 import { CodeRecoverInterface } from 'src/common/interfaces/email.interface';
@@ -16,12 +18,14 @@ import { Repository } from 'typeorm';
 import { CreateHistoricRecoverDto } from '../historic-recover/dto/create-historic-recover.dto';
 import { FilterUser } from './dto/Filter.user';
 import { CreateUserDto } from './dto/create-user.dto';
+import { Qrcode2fa } from './dto/qrcode.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user.response.dto';
 import { UserEntity } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
+
 
   private readonly logger = new Logger(UserService.name)
 
@@ -684,6 +688,73 @@ export class UserService {
 
 
 
+
+
+  async generate2FAQRCode(user_id: number): Promise<string> {
+
+    const user = await this.userRepository.findOne({
+      where: {
+        user_id: user_id
+      }
+    })
+
+    const otpauth = speakeasy.otpauthURL({
+      secret: user.user_2fa_secret,
+      label: `HelPsi:${user.user_email}`,
+      algorithm: 'sha1'
+    });
+
+    return QRCode.toDataURL(otpauth);
+  }
+
+
+  async generate2fa(user_id: number, qrcode2fa: Qrcode2fa) {
+
+    try {
+      const { status } = qrcode2fa
+
+      const user = await this.userRepository.findOne({
+        where: {
+          user_id: user_id
+        }
+      })
+
+
+      status ? user.setTwoFactorSecret() : user.user_2fa_secret = ''
+      user.user_2fa_active = status
+
+
+
+      await this.userRepository.save(user)
+
+
+      let res = null
+
+
+
+      const customPromisse = new Promise((resolve, reject) => {
+
+        if (status === true) {
+          console.log('1');
+          resolve(this.generate2FAQRCode(user_id))
+        } else {
+          console.log('2');
+          reject('Authenticação de dois fatores desabilitada')
+        }
+      })
+
+
+      return customPromisse
+    } catch (error) {
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: 'Authenticação de dois fatores desabilitada',
+      }, HttpStatus.BAD_REQUEST);
+    }
+
+
+
+  }
 
 
 }
