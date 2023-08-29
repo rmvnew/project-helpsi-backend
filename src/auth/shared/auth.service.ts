@@ -2,11 +2,13 @@
 https://docs.nestjs.com/providers#services
 */
 
-import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { totp } from 'otplib';
+
 import { hash, isMatchHash } from 'src/common/hash';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
@@ -44,19 +46,86 @@ export class AuthService {
         return null;
     }
 
-    async login(user: LoginDTO) {
+    // async login(user: LoginDTO) {
 
+
+
+    //     const userSaved = await this.userService.findByEmail(user.email);
+
+    //     if (!userSaved) {
+    //         throw new UnauthorizedException('Invalid credentials.');
+    //     }
+
+
+    //     if (userSaved.user_status === false) {
+    //         throw new BadRequestException(`Usuário ${userSaved.user_name} não está ativo no sistema!`)
+    //     }
+
+    //     if (userSaved.user_2fa_active) {
+    //         if (!userSaved.user_2fa_secret) {
+    //             throw new BadRequestException('2FA code required.');
+    //         }
+
+    //         totp.options = { step: 30 }; // O padrão é 30 segundos, você pode ajustar se necessário.
+    //         const is2FACorrect = authenticator.verify({ token: user.twoFactorCode.toString(), secret: userSaved.user_2fa_secret });
+
+
+
+
+    //         if (!is2FACorrect) {
+    //             throw new BadRequestException('Invalid 2FA code.');
+    //         }
+    //     }
+
+    //     const { access_token, refresh_token } = await this.getTokens(userSaved.user_id, userSaved.user_name, userSaved.user_profile_id)
+
+    //     const hashed_refresh_token = await hash(refresh_token);
+
+    //     await this.userService.updateRefreshToken(userSaved.user_id, hashed_refresh_token)
+
+    //     return {
+    //         access_token: access_token,
+    //         refresh_token: refresh_token,
+    //         name: userSaved.user_name,
+    //         login: userSaved.user_email,
+    //         profile: userSaved.profile.profile_name,
+    //         expires_in: this.configService.get('auth.token_expires_in')
+    //     }
+    // }
+
+
+
+    async login(user: LoginDTO) {
         const userSaved = await this.userService.findByEmail(user.email);
 
-        if (userSaved.user_status === false) {
-            throw new BadRequestException(`Usuário ${userSaved.user_name} não está ativo no sistema!`)
+        if (!userSaved || userSaved.user_status === false) {
+            throw new UnauthorizedException('Invalid credentials.');
         }
 
-        const { access_token, refresh_token } = await this.getTokens(userSaved.user_id, userSaved.user_name, userSaved.user_profile_id)
+        if (userSaved.user_2fa_active) {
+            this.verify2FACode(user.twoFactorCode, userSaved.user_2fa_secret);
+        }
+
+        return await this.generateAndReturnTokens(userSaved);
+    }
+
+    private verify2FACode(userCode: string, secret: string): void {
+        totp.options = { step: 30 };
+        const is2FACorrect = totp.verify({
+            token: userCode.toString(),
+            secret: secret
+        });
+
+        if (!is2FACorrect) {
+            throw new UnauthorizedException('Invalid credentials.');
+        }
+    }
+
+    private async generateAndReturnTokens(userSaved: UserEntity) {
+        const { access_token, refresh_token } = await this.getTokens(userSaved.user_id, userSaved.user_name, userSaved.user_profile_id);
 
         const hashed_refresh_token = await hash(refresh_token);
-
-        await this.userService.updateRefreshToken(userSaved.user_id, hashed_refresh_token)
+        await this.userService.updateRefreshToken(userSaved.user_id, hashed_refresh_token);
 
         return {
             access_token: access_token,
@@ -65,8 +134,10 @@ export class AuthService {
             login: userSaved.user_email,
             profile: userSaved.profile.profile_name,
             expires_in: this.configService.get('auth.token_expires_in')
-        }
+        };
     }
+
+
 
     async refreshToken(id: number, refreshToken: string) {
         const user = await this.userRepository.findOne({

@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { totp } from 'otplib';
 import AccessProfile from 'src/auth/enums/permission.type';
 import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
 import { PublicRoute } from 'src/common/decorators/public_route.decorator';
@@ -9,10 +10,12 @@ import { getUserPath } from 'src/common/routes.path';
 import { ProfileEntity } from 'src/profile/entities/profile.entity';
 import { FilterUser } from './dto/Filter.user';
 import { CreateUserDto } from './dto/create-user.dto';
+import { Qrcode2fa } from './dto/qrcode.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user.response.dto';
 import { UserEntity } from './entities/user.entity';
 import { UserService } from './user.service';
+
 
 @Controller('user')
 @ApiTags('User')
@@ -95,6 +98,39 @@ export class UserController {
 
     return this.userService.findUserByEmail(email)
   }
+
+  @Post('test-2fa-otplib')
+  @PublicRoute()
+  test2FAOtplib(@Body() body: { secret: string, token: string }) {
+    totp.options = { step: 30 }; // O padrão é 30 segundos, você pode ajustar se necessário.
+    const isValid = totp.verify({ token: body.token, secret: body.secret });
+    return { isValid };
+  }
+
+
+  @Get('/qrcode-2fa/:id')
+  // @PublicRoute()
+  @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
+  async getQrCode(
+    @Param('id') id: number
+  ) {
+    return this.userService.generate2FAQRCode(id)
+  }
+
+
+  @Put('status-code/:id')
+  @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
+  // @PublicRoute()
+  async generate2fa(
+    @Param('id') id: number,
+    @Body() qrcode2fs: Qrcode2fa
+
+  ) {
+    return this.userService.generate2fa(id, qrcode2fs)
+  }
+
+
+
 
   @Get(':id')
   @UseGuards(PermissionGuard(AccessProfile.ADMIN))
