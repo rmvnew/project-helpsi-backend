@@ -42,12 +42,14 @@ export class UserController {
   @Get()
   @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
   async findAll(
-    @Query() filter: FilterUser
+    @Query() query
   ): Promise<Pagination<UserResponseDto>> {
 
-
-    filter.route = getUserPath()
-
+    const filter: FilterUser = {
+      ...new FilterUser(),
+      ...query
+    };
+    filter.route = getUserPath();
     return this.userService.findAll(filter);
   }
 
@@ -62,6 +64,7 @@ export class UserController {
   ) {
     return this.userService.changePassword(id, currentPass, firstPass, secondPass)
   }
+
 
   @Post('/resetPass')
   @PublicRoute()

@@ -1,4 +1,4 @@
-import { BadGatewayException, BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { plainToClass } from 'class-transformer';
@@ -710,40 +710,47 @@ export class UserService {
 
   async generate2fa(user_id: number, qrcode2fa: Qrcode2fa) {
 
-    const { status } = qrcode2fa
+    try {
+      const { status } = qrcode2fa
 
-    const user = await this.userRepository.findOne({
-      where: {
-        user_id: user_id
-      }
-    })
-
-
-    status ? user.setTwoFactorSecret() : user.user_2fa_secret = ''
-    user.user_2fa_active = status
-
-    console.log(user);
-
-    await this.userRepository.save(user)
+      const user = await this.userRepository.findOne({
+        where: {
+          user_id: user_id
+        }
+      })
 
 
-    let res = null
+      status ? user.setTwoFactorSecret() : user.user_2fa_secret = ''
+      user.user_2fa_active = status
 
 
 
-    const customPromisse = new Promise((resolve, reject) => {
-
-      if (status === true) {
-        console.log('1');
-        resolve(this.generate2FAQRCode(user_id))
-      } else {
-        console.log('2');
-        reject('Ocorreu um erro ao gerar o QR Code')
-      }
-    })
+      await this.userRepository.save(user)
 
 
-    return customPromisse
+      let res = null
+
+
+
+      const customPromisse = new Promise((resolve, reject) => {
+
+        if (status === true) {
+          console.log('1');
+          resolve(this.generate2FAQRCode(user_id))
+        } else {
+          console.log('2');
+          reject('Authenticação de dois fatores desabilitada')
+        }
+      })
+
+
+      return customPromisse
+    } catch (error) {
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: 'Authenticação de dois fatores desabilitada',
+      }, HttpStatus.BAD_REQUEST);
+    }
 
 
 
