@@ -10,6 +10,7 @@ import { HistoricRecoverModule } from './historic-recover/historic-recover.modul
 import { EmailModule } from './mail/mail.module';
 import { ProfileModule } from './profile/profile.module';
 import { UserModule } from './user/user.module';
+import { AddressModule } from './address/address.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { UserModule } from './user/user.module';
     SwaggerModule,
     ProfileModule,
     EmailModule,
-    HistoricRecoverModule
+    HistoricRecoverModule,
+    AddressModule
   ],
   controllers: [],
   providers: [

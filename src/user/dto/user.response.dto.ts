@@ -3,7 +3,7 @@ import { Expose } from "class-transformer"
 export class UserResponseDto {
 
     @Expose()
-    user_id: number
+    user_id: string
 
     @Expose()
     user_name: string

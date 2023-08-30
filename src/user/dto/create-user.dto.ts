@@ -1,4 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { IsOptional } from "class-validator";
+import { CreateAddressDto } from "src/address/dto/create-address.dto";
 
 export class CreateUserDto {
     @ApiProperty()
@@ -18,4 +20,7 @@ export class CreateUserDto {
 
     @ApiProperty()
     user_2fa_active: boolean
+
+    @IsOptional()
+    address?: CreateAddressDto
 }

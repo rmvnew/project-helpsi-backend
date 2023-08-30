@@ -11,10 +11,10 @@ export class FilterPagination {
     limit: number = 10
 
     @ApiProperty({ required: false, default: 'ASC', enum: ['ASC', 'DESC'] })
-    sort: string = 'ASC'
+    sort: string = 'DESC'
 
-    @ApiProperty({ required: false, default: 'NAME', enum: ['ID', 'NAME'] })
-    orderBy: string = 'NAME'
+    @ApiProperty({ required: false, default: 'DATE', enum: ['DATE', 'NAME'] })
+    orderBy: string = 'DATE'
 
     route: string
 }

@@ -46,52 +46,6 @@ export class AuthService {
         return null;
     }
 
-    // async login(user: LoginDTO) {
-
-
-
-    //     const userSaved = await this.userService.findByEmail(user.email);
-
-    //     if (!userSaved) {
-    //         throw new UnauthorizedException('Invalid credentials.');
-    //     }
-
-
-    //     if (userSaved.user_status === false) {
-    //         throw new BadRequestException(`Usuário ${userSaved.user_name} não está ativo no sistema!`)
-    //     }
-
-    //     if (userSaved.user_2fa_active) {
-    //         if (!userSaved.user_2fa_secret) {
-    //             throw new BadRequestException('2FA code required.');
-    //         }
-
-    //         totp.options = { step: 30 }; // O padrão é 30 segundos, você pode ajustar se necessário.
-    //         const is2FACorrect = authenticator.verify({ token: user.twoFactorCode.toString(), secret: userSaved.user_2fa_secret });
-
-
-
-
-    //         if (!is2FACorrect) {
-    //             throw new BadRequestException('Invalid 2FA code.');
-    //         }
-    //     }
-
-    //     const { access_token, refresh_token } = await this.getTokens(userSaved.user_id, userSaved.user_name, userSaved.user_profile_id)
-
-    //     const hashed_refresh_token = await hash(refresh_token);
-
-    //     await this.userService.updateRefreshToken(userSaved.user_id, hashed_refresh_token)
-
-    //     return {
-    //         access_token: access_token,
-    //         refresh_token: refresh_token,
-    //         name: userSaved.user_name,
-    //         login: userSaved.user_email,
-    //         profile: userSaved.profile.profile_name,
-    //         expires_in: this.configService.get('auth.token_expires_in')
-    //     }
-    // }
 
 
 
@@ -139,7 +93,7 @@ export class AuthService {
 
 
 
-    async refreshToken(id: number, refreshToken: string) {
+    async refreshToken(id: string, refreshToken: string) {
         const user = await this.userRepository.findOne({
             where: {
                 user_id: id
@@ -176,7 +130,7 @@ export class AuthService {
     }
 
 
-    async removeRefreshToken(id: number): Promise<any> {
+    async removeRefreshToken(id: string): Promise<any> {
         const user = await this.userService.findById(id)
 
         if (!user) {
@@ -186,7 +140,7 @@ export class AuthService {
         await this.userService.updateRefreshToken(user.user_id, null);
     }
 
-    async getTokens(id: number, name: string, profile_id: number): Promise<Tokens> {
+    async getTokens(id: string, name: string, profile_id: number): Promise<Tokens> {
 
         const [access_token, refresh_token] = await Promise.all([
             this.jwtService.signAsync({

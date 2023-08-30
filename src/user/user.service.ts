@@ -5,7 +5,7 @@ import { plainToClass } from 'class-transformer';
 import { Pagination, paginate } from 'nestjs-typeorm-paginate';
 import * as QRCode from 'qrcode';
 import * as speakeasy from 'speakeasy';
-import { ObjectSize, SortingType, ValidType } from 'src/common/Enums';
+import { SortingType, ValidType } from 'src/common/Enums';
 import { Utils } from 'src/common/Utils';
 import { CodeRecoverInterface } from 'src/common/interfaces/email.interface';
 import { RecoverInterface } from 'src/common/interfaces/recover.interface';
@@ -166,9 +166,9 @@ export class UserService {
 
       }
 
-      if (orderBy == SortingType.ID) {
+      if (orderBy == SortingType.DATE) {
 
-        queryBuilder.orderBy('user.user_id', `${sort === 'DESC' ? 'DESC' : 'ASC'}`)
+        queryBuilder.orderBy('user.create_at', `${sort === 'DESC' ? 'DESC' : 'ASC'}`)
 
       } else {
 
@@ -237,17 +237,17 @@ export class UserService {
   }
 
 
-  async findById(id: number): Promise<UserResponseDto> {
+  async findById(id: string): Promise<UserResponseDto> {
 
     try {
 
-      Validations.getInstance().validateWithRegex(
-        `${id}`,
-        ValidType.IS_NUMBER
-      )
-      if (id > ObjectSize.INTEGER) {
-        throw new BadRequestException(`Invalid id number`)
-      }
+      // Validations.getInstance().validateWithRegex(
+      //   `${id}`,
+      //   ValidType.IS_NUMBER
+      // )
+      // if (id > ObjectSize.INTEGER) {
+      //   throw new BadRequestException(`Invalid id number`)
+      // }
 
       const user = await this.userRepository.createQueryBuilder('user')
         .leftJoinAndSelect('user.profile', 'profile')
@@ -289,17 +289,17 @@ export class UserService {
     }
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
 
     try {
-      Validations.getInstance().validateWithRegex(
-        `${id}`,
-        ValidType.IS_NUMBER
-      )
+      // Validations.getInstance().validateWithRegex(
+      //   `${id}`,
+      //   ValidType.IS_NUMBER
+      // )
 
-      if (id > ObjectSize.INTEGER) {
-        throw new BadRequestException(`Invalid id number`)
-      }
+      // if (id > ObjectSize.INTEGER) {
+      //   throw new BadRequestException(`Invalid id number`)
+      // }
 
       const { user_name, user_email, user_profile_id: profile_id } = updateUserDto
 
@@ -362,18 +362,18 @@ export class UserService {
     }
   }
 
-  async changeStatus(id: number) {
+  async changeStatus(id: string) {
 
     try {
 
-      Validations.getInstance().validateWithRegex(
-        `${id}`,
-        ValidType.IS_NUMBER
-      )
+      // Validations.getInstance().validateWithRegex(
+      //   `${id}`,
+      //   ValidType.IS_NUMBER
+      // )
 
-      if (id > ObjectSize.INTEGER) {
-        throw new BadRequestException(`Invalid id number`)
-      }
+      // if (id > ObjectSize.INTEGER) {
+      //   throw new BadRequestException(`Invalid id number`)
+      // }
 
       const userSaved = await this.findById(id)
 
@@ -396,18 +396,18 @@ export class UserService {
     }
   }
 
-  async updateRefreshToken(id: number, refresh_token: string) {
+  async updateRefreshToken(id: string, refresh_token: string) {
 
     try {
 
-      Validations.getInstance().validateWithRegex(
-        `${id}`,
-        ValidType.IS_NUMBER
-      )
+      // Validations.getInstance().validateWithRegex(
+      //   `${id}`,
+      //   ValidType.IS_NUMBER
+      // )
 
-      if (id > ObjectSize.INTEGER) {
-        throw new BadRequestException(`Invalid id number`)
-      }
+      // if (id > ObjectSize.INTEGER) {
+      //   throw new BadRequestException(`Invalid id number`)
+      // }
 
       const user = await this.userRepository.findOne({
         where: {
@@ -429,17 +429,17 @@ export class UserService {
     }
   }
 
-  async changeFirstAccess(id: number) {
+  async changeFirstAccess(id: string) {
 
     try {
-      Validations.getInstance().validateWithRegex(
-        `${id}`,
-        ValidType.IS_NUMBER
-      )
+      // Validations.getInstance().validateWithRegex(
+      //   `${id}`,
+      //   ValidType.IS_NUMBER
+      // )
 
-      if (id > ObjectSize.INTEGER) {
-        throw new BadRequestException(`Invalid id number`)
-      }
+      // if (id > ObjectSize.INTEGER) {
+      //   throw new BadRequestException(`Invalid id number`)
+      // }
 
 
 
@@ -479,18 +479,18 @@ export class UserService {
 
   }
 
-  async changePassword(id: number, currentPassword: string, firstPass: string, secondPass: string) {
+  async changePassword(id: string, currentPassword: string, firstPass: string, secondPass: string) {
 
     try {
 
-      Validations.getInstance().validateWithRegex(
-        `${id}`,
-        ValidType.IS_NUMBER
-      )
+      // Validations.getInstance().validateWithRegex(
+      //   `${id}`,
+      //   ValidType.IS_NUMBER
+      // )
 
-      if (id > ObjectSize.INTEGER) {
-        throw new BadRequestException(`Invalid id number`)
-      }
+      // if (id > ObjectSize.INTEGER) {
+      //   throw new BadRequestException(`Invalid id number`)
+      // }
 
       if (firstPass !== secondPass) {
         throw new BadRequestException(`Passwords do not match`)
@@ -690,7 +690,7 @@ export class UserService {
 
 
 
-  async generate2FAQRCode(user_id: number): Promise<string> {
+  async generate2FAQRCode(user_id: string): Promise<string> {
 
     const user = await this.userRepository.findOne({
       where: {
@@ -708,7 +708,7 @@ export class UserService {
   }
 
 
-  async generate2fa(user_id: number, qrcode2fa: Qrcode2fa) {
+  async generate2fa(user_id: string, qrcode2fa: Qrcode2fa) {
 
     try {
       const { status } = qrcode2fa

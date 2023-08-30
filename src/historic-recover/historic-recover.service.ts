@@ -25,7 +25,7 @@ export class HistoricRecoverService {
     this.historicRepository.save(historic)
   }
 
-  async findByDate(date: string, userId: number) {
+  async findByDate(date: string, userId: string) {
 
     return this.historicRepository.createQueryBuilder('historic')
       .where("DATE(historic.historicRecoverDate) = :date", { date: date.toString().split('T')[0] })

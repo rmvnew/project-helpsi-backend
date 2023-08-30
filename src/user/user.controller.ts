@@ -57,7 +57,7 @@ export class UserController {
   @Patch('/change-password/:id/:currentPass/:firstPass/:secondPass')
   @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
   async changePassword(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Param('currentPass') currentPass: string,
     @Param('firstPass') firstPass: string,
     @Param('secondPass') secondPass: string
@@ -115,7 +115,7 @@ export class UserController {
   // @PublicRoute()
   @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
   async getQrCode(
-    @Param('id') id: number
+    @Param('id') id: string
   ) {
     return this.userService.generate2FAQRCode(id)
   }
@@ -125,7 +125,7 @@ export class UserController {
   @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
   // @PublicRoute()
   async generate2fa(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() qrcode2fs: Qrcode2fa
 
   ) {
@@ -138,7 +138,7 @@ export class UserController {
   @Get(':id')
   @UseGuards(PermissionGuard(AccessProfile.ADMIN))
   async findOne(
-    @Param('id') id: number
+    @Param('id') id: string
   ): Promise<UserResponseDto> {
     return this.userService.findById(id);
   }
@@ -149,13 +149,13 @@ export class UserController {
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto
   ): Promise<UserResponseDto> {
-    return this.userService.update(+id, updateUserDto);
+    return this.userService.update(id, updateUserDto);
   }
 
   @Patch('/status/:id')
   @UseGuards(PermissionGuard(AccessProfile.ADMIN))
   async changeStatus(
-    @Param('id') id: number
+    @Param('id') id: string
   ): Promise<UserEntity> {
     return this.userService.changeStatus(id);
   }

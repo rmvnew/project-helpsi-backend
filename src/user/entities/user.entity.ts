@@ -1,13 +1,14 @@
 import * as speakeasy from 'speakeasy';
+import { Address } from 'src/address/entities/address.entity';
 import { HistoricRecover } from "src/historic-recover/entities/historic-recover.entity";
 import { ProfileEntity } from "src/profile/entities/profile.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('USER')
 export class UserEntity {
 
-    @PrimaryGeneratedColumn()
-    user_id: number
+    @PrimaryGeneratedColumn('uuid')
+    user_id: string
 
     @Column()
     user_name: string
@@ -60,6 +61,10 @@ export class UserEntity {
 
     @OneToMany(() => HistoricRecover, recover => recover.user)
     historics: HistoricRecover[];
+
+    @OneToOne(() => Address, { nullable: true, cascade: true })
+    @JoinColumn({ name: 'address_id' })
+    address?: Address
 
     setTwoFactorSecret() {
         this.user_2fa_secret = speakeasy.generateSecret({ length: 20 }).base32
