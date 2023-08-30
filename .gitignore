@@ -37,3 +37,4 @@ lerna-debug.log*
 /pg-data
 /environments/.env
 /environments/.env.test
+.env
