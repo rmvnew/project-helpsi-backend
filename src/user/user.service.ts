@@ -160,7 +160,7 @@ export class UserService {
 
 
         queryBuilder
-          .where(`user.user_name ILIKE :user_name`, {
+          .where(`user.user_name LIKE :user_name`, {
             user_name: `%${user_name}%`
           })
 
