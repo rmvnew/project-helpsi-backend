@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateAddressDto } from './dto/create-address.dto';
@@ -15,23 +15,50 @@ export class AddressService {
   ) { }
 
 
-  create(createAddressDto: CreateAddressDto) {
-    return 'This action adds a new address';
+  async create(createAddressDto: CreateAddressDto) {
+
+    const address = this.addressRepository.create(createAddressDto)
+
+    return this.addressRepository.save(address)
   }
 
-  findAll() {
-    return `This action returns all address`;
+  async findOne(id: string) {
+
+    return this.addressRepository.findOne({
+      where: {
+        address_id: id
+      }
+    })
+
+
+
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} address`;
+  async update(id: string, updateAddressDto: UpdateAddressDto) {
+
+    const isRegistered = await this.findOne(id)
+
+    if (!isRegistered) {
+      throw new NotFoundException(`O endereço não foi encontrado!`)
+    }
+
+    const address = await this.addressRepository.preload({
+      address_id: id,
+      ...updateAddressDto
+    })
+
+    return this.addressRepository.save(address)
   }
 
-  update(id: number, updateAddressDto: UpdateAddressDto) {
-    return `This action updates a #${id} address`;
-  }
+  async remove(id: string) {
 
-  remove(id: number) {
-    return `This action removes a #${id} address`;
+    const isRegistered = await this.findOne(id)
+
+    if (!isRegistered) {
+      throw new NotFoundException(`O endereço não foi encontrado!`)
+    }
+
+    this.addressRepository.delete(isRegistered)
+
   }
 }
