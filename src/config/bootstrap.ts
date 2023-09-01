@@ -14,20 +14,28 @@ export class Bootstrap {
 
     async onApplicationBootstrap() {
 
-        const profileHaveData = await this.profileService.haveProfile('ADMIN')
+
         const userHaveData = await this.userService.haveAdmin('sysadmin')
 
-        let currentProfile = profileHaveData
+        let currentProfile = null
 
+        const profiles = ['ADMIN', 'PATIENT', 'PSYCHOLOGIST', 'ATTENDANT']
 
-        if (!profileHaveData) {
+        for (let prof of profiles) {
+
+            const profileHaveData = await this.profileService.haveProfile(prof)
 
             const profile: CreateProfileDto = {
-                profile_name: 'ADMIN'
+                profile_name: prof
             }
 
-            currentProfile = await this.profileService.create(profile)
+            if (profile.profile_name === 'ADMIN') {
+                currentProfile = profile
+            }
+
+            await this.profileService.create(profile)
         }
+
 
         if (!userHaveData) {
 

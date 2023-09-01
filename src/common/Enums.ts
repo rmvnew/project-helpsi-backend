@@ -45,3 +45,9 @@ export enum ProfileType {
     ADMINISTRATOR = 'ADMINISTRATOR',
     USER = 'USER'
 }
+
+export enum UserType {
+    PATIENT = 'patient',
+    PSYCHOLOGIST = 'psychologist',
+    ATTENDANT = 'attendant'
+}
