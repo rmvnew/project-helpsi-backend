@@ -19,6 +19,7 @@ import { CreateHistoricRecoverDto } from '../historic-recover/dto/create-histori
 import { FilterUser } from './dto/Filter.user';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { ListPsychologistResponseDto } from './dto/list.psychologist.response.dto';
 import { PatientResponseDto } from './dto/patient.response.dto';
 import { PsychologistResponseDto } from './dto/psychologist.response.dto';
 import { Qrcode2fa } from './dto/qrcode.dto';
@@ -856,6 +857,21 @@ export class UserService {
   }
 
 
+  async getAllPsychologists() {
+    const psychologists = await this.userRepository.createQueryBuilder('user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .where('profile.profile_name = :name', { name: `PSYCHOLOGIST` })
+      .getMany()
+
+
+    const userDto: ListPsychologistResponseDto[] = plainToClass(ListPsychologistResponseDto, psychologists, {
+      excludeExtraneousValues: true
+    })
+
+    return userDto
+
+
+  }
 
 
 

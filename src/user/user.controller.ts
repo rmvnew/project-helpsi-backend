@@ -108,10 +108,26 @@ export class UserController {
   @Post('test-2fa-otplib')
   @PublicRoute()
   test2FAOtplib(@Body() body: { secret: string, token: string }) {
-    totp.options = { step: 30 }; // O padrão é 30 segundos, você pode ajustar se necessário.
+    totp.options = { step: 30 };
     const isValid = totp.verify({ token: body.token, secret: body.secret });
     return { isValid };
   }
+
+
+
+  @Get('/allPsychologists')
+  @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
+  async getAllPsychologists() {
+
+    return this.userService.getAllPsychologists()
+  }
+
+  /**
+ 
+  params iten 
+ 
+   */
+
 
 
   @Get('/qrcode-2fa/:id')
@@ -134,9 +150,6 @@ export class UserController {
   ) {
     return this.userService.generate2fa(id, qrcode2fs)
   }
-
-
-
 
   @Get(':id')
   @UseGuards(PermissionGuard(AccessProfile.ADMIN))
