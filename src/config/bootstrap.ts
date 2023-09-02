@@ -25,15 +25,19 @@ export class Bootstrap {
 
             const profileHaveData = await this.profileService.haveProfile(prof)
 
-            const profile: CreateProfileDto = {
-                profile_name: prof
-            }
+            if (!profileHaveData) {
 
-            if (profile.profile_name === 'ADMIN') {
-                currentProfile = profile
-            }
+                const profile: CreateProfileDto = {
+                    profile_name: prof
+                }
 
-            await this.profileService.create(profile)
+                if (profile.profile_name === 'ADMIN') {
+                    currentProfile = profile
+                }
+
+                await this.profileService.create(profile)
+
+            }
         }
 
 

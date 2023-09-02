@@ -17,7 +17,10 @@ import { ProfileEntity } from 'src/profile/entities/profile.entity';
 import { Repository } from 'typeorm';
 import { CreateHistoricRecoverDto } from '../historic-recover/dto/create-historic-recover.dto';
 import { FilterUser } from './dto/Filter.user';
+import { CreatePatientDto } from './dto/create-patient.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { PatientResponseDto } from './dto/patient.response.dto';
+import { PsychologistResponseDto } from './dto/psychologist.response.dto';
 import { Qrcode2fa } from './dto/qrcode.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user.response.dto';
@@ -241,14 +244,6 @@ export class UserService {
 
     try {
 
-      // Validations.getInstance().validateWithRegex(
-      //   `${id}`,
-      //   ValidType.IS_NUMBER
-      // )
-      // if (id > ObjectSize.INTEGER) {
-      //   throw new BadRequestException(`Invalid id number`)
-      // }
-
       const user = await this.userRepository.createQueryBuilder('user')
         .leftJoinAndSelect('user.profile', 'profile')
         .where('user.user_id = :user_id', { user_id: id })
@@ -292,14 +287,6 @@ export class UserService {
   async update(id: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
 
     try {
-      // Validations.getInstance().validateWithRegex(
-      //   `${id}`,
-      //   ValidType.IS_NUMBER
-      // )
-
-      // if (id > ObjectSize.INTEGER) {
-      //   throw new BadRequestException(`Invalid id number`)
-      // }
 
       const { user_name, user_email, user_profile_id: profile_id } = updateUserDto
 
@@ -366,15 +353,6 @@ export class UserService {
 
     try {
 
-      // Validations.getInstance().validateWithRegex(
-      //   `${id}`,
-      //   ValidType.IS_NUMBER
-      // )
-
-      // if (id > ObjectSize.INTEGER) {
-      //   throw new BadRequestException(`Invalid id number`)
-      // }
-
       const userSaved = await this.findById(id)
 
       if (!userSaved) {
@@ -400,15 +378,6 @@ export class UserService {
 
     try {
 
-      // Validations.getInstance().validateWithRegex(
-      //   `${id}`,
-      //   ValidType.IS_NUMBER
-      // )
-
-      // if (id > ObjectSize.INTEGER) {
-      //   throw new BadRequestException(`Invalid id number`)
-      // }
-
       const user = await this.userRepository.findOne({
         where: {
           user_id: id
@@ -432,16 +401,6 @@ export class UserService {
   async changeFirstAccess(id: string) {
 
     try {
-      // Validations.getInstance().validateWithRegex(
-      //   `${id}`,
-      //   ValidType.IS_NUMBER
-      // )
-
-      // if (id > ObjectSize.INTEGER) {
-      //   throw new BadRequestException(`Invalid id number`)
-      // }
-
-
 
       const userSaved = await this.userRepository.findOne({
         where: {
@@ -482,15 +441,6 @@ export class UserService {
   async changePassword(id: string, currentPassword: string, firstPass: string, secondPass: string) {
 
     try {
-
-      // Validations.getInstance().validateWithRegex(
-      //   `${id}`,
-      //   ValidType.IS_NUMBER
-      // )
-
-      // if (id > ObjectSize.INTEGER) {
-      //   throw new BadRequestException(`Invalid id number`)
-      // }
 
       if (firstPass !== secondPass) {
         throw new BadRequestException(`Passwords do not match`)
@@ -755,6 +705,159 @@ export class UserService {
 
 
   }
+
+  async createPatient(createPatientDto: CreatePatientDto): Promise<UserResponseDto> {
+
+    try {
+      const {
+        user_name,
+        user_email,
+        user_password,
+        psychologist_id,
+      } = createPatientDto;
+
+      if (!user_name || user_name.trim() === '') {
+        throw new BadRequestException(`O nome não pode estar vazio`);
+      }
+
+      if (!user_email || user_email.trim() === '') {
+        throw new BadRequestException(`O email não pode estar vazio`);
+      }
+
+      const patient = this.userRepository.create(createPatientDto);
+
+      patient.user_name = user_name.toUpperCase();
+
+      Validations.getInstance().validateWithRegex(
+        patient.user_name,
+        ValidType.NO_MANY_SPACE,
+        ValidType.NO_SPECIAL_CHARACTER,
+        ValidType.IS_STRING
+      );
+
+      Validations.getInstance().validateWithRegex(
+        patient.user_email,
+        ValidType.IS_EMAIL,
+        ValidType.NO_SPACE
+      );
+
+      Validations.getInstance().verifyLength(
+        patient.user_name, 'Name', 5, 40
+      );
+
+      const patientIsRegistered = await this.findByName(patient.user_name);
+      if (patientIsRegistered) {
+        throw new BadRequestException(`Paciente já registrado`);
+      }
+
+      const emailIsRegistered = await this.findByEmail(patient.user_email);
+      if (emailIsRegistered) {
+        throw new BadRequestException(`Email já registrado`);
+      }
+
+      patient.user_password = await Utils.getInstance().encryptPassword(user_password);
+
+      const psychologist = await this.userRepository.findOne({
+        where: {
+          user_id: psychologist_id
+        }
+      });
+
+      if (!psychologist) {
+        throw new NotFoundException(`Psicólogo não encontrado`);
+      }
+
+      const patientProfile = await this.profileRepository.findOne({
+        where: {
+          profile_name: 'PATIENT'
+        }
+      })
+
+      patient.psychologist = psychologist;
+
+      patient.user_status = true;
+      patient.user_first_access = true;
+      patient.profile = patientProfile
+      patient.setTwoFactorSecret();
+
+      const patientSaved = await this.userRepository.save(patient);
+
+      const patientDto: UserResponseDto = plainToClass(UserResponseDto, patientSaved, {
+        excludeExtraneousValues: true
+      });
+
+      return patientDto;
+
+    } catch (error) {
+      this.logger.error(`createPatient error: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+
+  async findPatientWithPsychologist(patient_id: string): Promise<PatientResponseDto | null> {
+    try {
+      const patient = await this.userRepository
+        .createQueryBuilder('patient')
+        .leftJoinAndSelect('patient.psychologist', 'psychologist')
+        .where('patient.user_id = :patient_id', { patient_id })
+        .getOne();
+
+      if (!patient) {
+        throw new NotFoundException(`Paciente com ID ${patient_id} não encontrado`);
+      }
+
+      const psychologistDto = plainToClass(UserResponseDto, patient.psychologist, {
+        excludeExtraneousValues: true
+      });
+
+      const patientDto: PatientResponseDto = plainToClass(PatientResponseDto, patient, {
+        excludeExtraneousValues: true
+      });
+
+      patientDto.psychologist = psychologistDto
+
+      return patientDto;
+
+    } catch (error) {
+      this.logger.error(`findPatientWithPsychologist error: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+
+  async findPsychologistWithPatients(psychologist_id: string): Promise<PsychologistResponseDto | null> {
+    try {
+      const psychologist = await this.userRepository
+        .createQueryBuilder('psychologist')
+        .leftJoinAndSelect('psychologist.patients', 'patient')
+        .where('psychologist.user_id = :psychologist_id', { psychologist_id })
+        .getOne();
+
+      if (!psychologist) {
+        throw new NotFoundException(`Psicólogo com ID ${psychologist_id} não encontrado`);
+      }
+
+      const patientsDto = psychologist.patients.map(patient => plainToClass(UserResponseDto, patient, {
+        excludeExtraneousValues: true
+      }));
+
+      const psychologistDto = plainToClass(PsychologistResponseDto, psychologist, {
+        excludeExtraneousValues: true
+      });
+      psychologistDto.patients = patientsDto;
+
+      return psychologistDto;
+
+    } catch (error) {
+      this.logger.error(`findPsychologistWithPatients error: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+
+
+
 
 
 }

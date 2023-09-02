@@ -66,6 +66,13 @@ export class UserEntity {
     @JoinColumn({ name: 'address_id' })
     address?: Address
 
+    @ManyToOne(() => UserEntity, psychologist => psychologist.patients)
+    @JoinColumn({ name: 'psychologist_id' })
+    psychologist?: UserEntity;
+
+    @OneToMany(() => UserEntity, patient => patient.psychologist)
+    patients?: UserEntity[];
+
     setTwoFactorSecret() {
         this.user_2fa_secret = speakeasy.generateSecret({ length: 20 }).base32
     }

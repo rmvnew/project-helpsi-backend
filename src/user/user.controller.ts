@@ -9,6 +9,7 @@ import { RecoverInterface } from 'src/common/interfaces/recover.interface';
 import { getUserPath } from 'src/common/routes.path';
 import { ProfileEntity } from 'src/profile/entities/profile.entity';
 import { FilterUser } from './dto/Filter.user';
+import { CreatePatientDto } from './dto/create-patient.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Qrcode2fa } from './dto/qrcode.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -32,6 +33,8 @@ export class UserController {
   ): Promise<UserResponseDto> {
     return this.userService.create(createUserDto);
   }
+
+
 
   @Get('/profile')
   @UseGuards(PermissionGuard(AccessProfile.ADMIN))
@@ -158,6 +161,32 @@ export class UserController {
     @Param('id') id: string
   ): Promise<UserEntity> {
     return this.userService.changeStatus(id);
+  }
+
+  @Post('/patient')
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
+  // @PublicRoute()
+  async createPatient(
+    @Body() createPatientDto: CreatePatientDto
+  ): Promise<UserResponseDto> {
+    return this.userService.createPatient(createPatientDto)
+  }
+
+
+  @Get('/patient/:id')
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
+  async findPatient(
+    @Param('id') id: string
+  ): Promise<UserResponseDto> {
+    return this.userService.findPatientWithPsychologist(id)
+  }
+
+  @Get('/psychologist/:id')
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
+  async findPsychologist(
+    @Param('id') id: string
+  ): Promise<UserResponseDto> {
+    return this.userService.findPsychologistWithPatients(id)
   }
 
 
