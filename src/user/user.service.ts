@@ -110,6 +110,7 @@ export class UserService {
       user.user_status = true
       user.user_first_access = true
       user.setTwoFactorSecret()
+      user.user_enrollment = Utils.getInstance().getEnrollmentCode()
       user.user_2fa_active = user_2fa_active
 
       const userSaved = this.userRepository.save(user)

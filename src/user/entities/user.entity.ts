@@ -17,7 +17,10 @@ export class UserEntity {
     user_email: string
 
     @Column()
-    user_enrollment: string
+    user_phone: string
+
+    @Column()
+    user_enrollment?: string
 
     @Column({ nullable: true })
     user_recovery_code: number

@@ -10,7 +10,7 @@ export class CreateUserDto {
     user_email: string
 
     @ApiProperty()
-    user_enrollment: string
+    user_phone: string
 
     @ApiProperty()
     user_password: string

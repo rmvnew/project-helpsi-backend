@@ -1,5 +1,5 @@
 import { BadRequestException } from "@nestjs/common";
-import * as bcrypt from 'bcrypt'
+import * as bcrypt from 'bcrypt';
 import { createCipheriv } from "crypto";
 
 
@@ -109,7 +109,22 @@ export class Utils {
     }
 
 
-   
+    getEnrollmentCode() {
+
+
+        const currentdate = new Date()
+        const year = currentdate.getFullYear()
+        const month = (currentdate.getMonth() + 1).toString().padStart(2, '0')
+        const day = currentdate.getDate().toString().padStart(2, '0')
+
+        const minNumber = 100000;
+        const maxNumber = 999999;
+
+        const randomNumber = Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
+
+        return `${year}-${month}-${day}${randomNumber}`
+
+    }
 
 
 }
