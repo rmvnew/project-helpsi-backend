@@ -16,6 +16,9 @@ export class UserEntity {
     @Column()
     user_email: string
 
+    @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+    user_date_of_birth: Date
+
     @Column()
     user_phone: string
 

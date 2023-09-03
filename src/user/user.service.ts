@@ -55,7 +55,7 @@ export class UserService {
         user_profile_id: profile_id,
         user_email,
         user_password,
-        user_2fa_active
+        user_date_of_birth
       } = createUserDto
 
       if (user_name.trim() == '' || user_name == undefined) {
@@ -111,7 +111,10 @@ export class UserService {
       user.user_first_access = true
       user.setTwoFactorSecret()
       user.user_enrollment = Utils.getInstance().getEnrollmentCode()
-      user.user_2fa_active = user_2fa_active
+      user.user_2fa_active = false
+
+      const dateParts = user_date_of_birth.split("/");
+      user.user_date_of_birth = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
 
       const userSaved = this.userRepository.save(user)
 
@@ -137,6 +140,8 @@ export class UserService {
       throw error
     }
   }
+
+
 
   async findProfileById(id: number): Promise<ProfileEntity> {
     try {
@@ -660,8 +665,8 @@ export class UserService {
   }
 
 
-  async generate2fa(user_id: string, qrcode2fa: Qrcode2fa) {
 
+  async generate2fa(user_id: string, qrcode2fa: Qrcode2fa) {
     try {
       const { status } = qrcode2fa
 
@@ -671,42 +676,31 @@ export class UserService {
         }
       })
 
-
       status ? user.setTwoFactorSecret() : user.user_2fa_secret = ''
       user.user_2fa_active = status
 
-
-
       await this.userRepository.save(user)
 
-
-      let res = null
-
-
-
-      const customPromisse = new Promise((resolve, reject) => {
-
+      const customPromisse = new Promise((resolve) => {
         if (status === true) {
-          console.log('1');
+          // console.log('1');
           resolve(this.generate2FAQRCode(user_id))
         } else {
-          console.log('2');
-          reject('Authenticação de dois fatores desabilitada')
+          // console.log('2');
+          resolve('Authenticação de dois fatores desabilitada')
         }
       })
 
-
       return customPromisse
+
     } catch (error) {
       throw new HttpException({
         status: HttpStatus.BAD_REQUEST,
-        error: 'Authenticação de dois fatores desabilitada',
+        error: 'Erro ao tentar gerar 2FA',
       }, HttpStatus.BAD_REQUEST);
     }
-
-
-
   }
+
 
   async createPatient(createPatientDto: CreatePatientDto): Promise<UserResponseDto> {
 

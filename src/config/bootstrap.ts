@@ -49,7 +49,7 @@ export class Bootstrap {
                 user_phone: '00000000000',
                 user_password: process.env.SYSADMIN_PASS,
                 user_profile_id: currentProfile.profile_id,
-                user_2fa_active: false
+                user_date_of_birth: '01/01/1970'
 
             }
 

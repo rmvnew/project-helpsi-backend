@@ -19,7 +19,7 @@ export class CreateUserDto {
     user_profile_id: number
 
     @ApiProperty()
-    user_2fa_active: boolean
+    user_date_of_birth: string
 
     @IsOptional()
     address?: CreateAddressDto

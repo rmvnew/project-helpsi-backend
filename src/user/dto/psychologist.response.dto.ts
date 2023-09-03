@@ -16,7 +16,10 @@ export class PsychologistResponseDto {
     user_status: boolean;
 
     @Expose()
-    user_2fa_active: boolean;
+    user_date_of_birth: string
+
+    @Expose()
+    user_phone: string
 
     @Expose()
     user_enrollment: string;
