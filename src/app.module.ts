@@ -11,6 +11,7 @@ import { EmailModule } from './mail/mail.module';
 import { ProfileModule } from './profile/profile.module';
 import { UserModule } from './user/user.module';
 import { AddressModule } from './address/address.module';
+import { SpecialtyModule } from './specialty/specialty.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { AddressModule } from './address/address.module';
     ProfileModule,
     EmailModule,
     HistoricRecoverModule,
-    AddressModule
+    AddressModule,
+    SpecialtyModule
   ],
   controllers: [],
   providers: [

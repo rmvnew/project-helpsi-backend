@@ -728,6 +728,7 @@ export class UserService {
         user_email,
         user_password,
         psychologist_id,
+        user_date_of_birth
       } = createPatientDto;
 
       if (!user_name || user_name.trim() === '') {
@@ -793,6 +794,11 @@ export class UserService {
       patient.user_first_access = true;
       patient.profile = patientProfile
       patient.setTwoFactorSecret();
+      patient.user_enrollment = Utils.getInstance().getEnrollmentCode()
+      patient.user_2fa_active = false
+
+      const dateParts = user_date_of_birth.split("/");
+      patient.user_date_of_birth = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
 
       const patientSaved = await this.userRepository.save(patient);
 
@@ -814,12 +820,15 @@ export class UserService {
       const patient = await this.userRepository
         .createQueryBuilder('patient')
         .leftJoinAndSelect('patient.psychologist', 'psychologist')
+        .leftJoinAndSelect('patient.address', 'address')
         .where('patient.user_id = :patient_id', { patient_id })
         .getOne();
 
       if (!patient) {
         throw new NotFoundException(`Paciente com ID ${patient_id} não encontrado`);
       }
+
+      console.log('Patient: ', patient);
 
       const psychologistDto = plainToClass(UserResponseDto, patient.psychologist, {
         excludeExtraneousValues: true
@@ -830,6 +839,7 @@ export class UserService {
       });
 
       patientDto.psychologist = psychologistDto
+      patientDto.address = patient.address
 
       return patientDto;
 

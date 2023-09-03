@@ -1,4 +1,5 @@
 import { Expose } from "class-transformer";
+import { Address } from "src/address/entities/address.entity";
 import { UserResponseDto } from "./user.response.dto";
 
 
@@ -39,5 +40,8 @@ export class PatientResponseDto {
 
     @Expose()
     psychologist: UserResponseDto
+
+    @Expose()
+    address: Address
 
 }

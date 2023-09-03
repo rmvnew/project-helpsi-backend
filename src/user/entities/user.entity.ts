@@ -3,7 +3,8 @@ import { Address } from 'src/address/entities/address.entity';
 import { UserGenderType } from 'src/common/Enums';
 import { HistoricRecover } from "src/historic-recover/entities/historic-recover.entity";
 import { ProfileEntity } from "src/profile/entities/profile.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Specialty } from 'src/specialty/entities/specialty.entity';
+import { Column, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('USER')
 export class UserEntity {
@@ -82,6 +83,20 @@ export class UserEntity {
 
     @OneToMany(() => UserEntity, patient => patient.psychologist)
     patients?: UserEntity[];
+
+    @ManyToMany(() => Specialty, specialty => specialty.users)
+    @JoinTable({
+        name: 'user_specialty',
+        joinColumn: {
+            name: 'user_id',
+            referencedColumnName: 'user_id'
+        },
+        inverseJoinColumn: {
+            name: 'specialty_id',
+            referencedColumnName: 'specialty_id'
+        }
+    })
+    specialtys?: Specialty[]
 
     setTwoFactorSecret() {
         this.user_2fa_secret = speakeasy.generateSecret({ length: 20 }).base32
