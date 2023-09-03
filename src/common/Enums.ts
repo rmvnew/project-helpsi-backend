@@ -51,3 +51,11 @@ export enum UserType {
     PSYCHOLOGIST = 'psychologist',
     ATTENDANT = 'attendant'
 }
+
+
+export enum UserGenderType {
+    MALE = 'MALE',
+    FEMALE = 'FEMALE',
+    NON_BINARY = 'NON_BINARY',
+    OTHER = 'OTHER'
+}

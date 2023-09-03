@@ -1,5 +1,6 @@
 import * as speakeasy from 'speakeasy';
 import { Address } from 'src/address/entities/address.entity';
+import { UserGenderType } from 'src/common/Enums';
 import { HistoricRecover } from "src/historic-recover/entities/historic-recover.entity";
 import { ProfileEntity } from "src/profile/entities/profile.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
@@ -18,6 +19,9 @@ export class UserEntity {
 
     @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
     user_date_of_birth: Date
+
+    @Column({ type: 'enum', enum: UserGenderType, nullable: true })
+    user_genre?: UserGenderType
 
     @Column()
     user_phone: string
