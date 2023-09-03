@@ -295,13 +295,26 @@ export class UserService {
 
     try {
 
-      const { user_name, user_email, user_profile_id: profile_id } = updateUserDto
+
+
+      const {
+        user_name,
+        user_email,
+        user_profile_id: profile_id,
+        user_date_of_birth,
+        user_phone
+      } = updateUserDto
+
+
 
       const isRegistered = await this.findById(id)
+
 
       if (!isRegistered) {
         throw new NotFoundException(`User does not exist`)
       }
+
+
 
       const user = await this.userRepository.preload({
         user_id: id,
@@ -345,6 +358,11 @@ export class UserService {
         }
         user.profile = profile
       }
+
+      const [day, month, year] = user_date_of_birth.split("/")
+
+      user.user_date_of_birth = new Date(+year, +month - 1, +day)
+
 
       await this.userRepository.save(user)
 

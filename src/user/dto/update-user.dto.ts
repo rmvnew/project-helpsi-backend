@@ -11,4 +11,10 @@ export class UpdateUserDto {
 
     @ApiProperty()
     user_profile_id: number
+
+    @ApiProperty()
+    user_date_of_birth: string
+
+    @ApiProperty()
+    user_phone: string
 }
