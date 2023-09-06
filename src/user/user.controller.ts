@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { totp } from 'otplib';
@@ -129,6 +129,15 @@ export class UserController {
    */
 
 
+
+  @Delete(':id')
+  // @PublicRoute()
+  @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
+  async delete(
+    @Param('id') id: string
+  ) {
+    return this.userService.deleteUser(id)
+  }
 
   @Get('/qrcode-2fa/:id')
   // @PublicRoute()

@@ -161,16 +161,18 @@ export class UserService {
   async findAll(filter: FilterUser): Promise<Pagination<UserResponseDto>> {
 
     try {
-      const { sort, orderBy, user_name } = filter
+      const { sort, orderBy, user_name, showAll } = filter
 
       const queryBuilder = this.userRepository.createQueryBuilder('user')
         .leftJoinAndSelect('user.profile', 'profile')
+
+
 
       if (user_name) {
 
 
         queryBuilder
-          .where(`user.user_name LIKE :user_name`, {
+          .andWhere(`user.user_name LIKE :user_name`, {
             user_name: `%${user_name}%`
           })
 
@@ -372,6 +374,27 @@ export class UserService {
       this.logger.error(`updateUser error: ${error.message}`, error.stack)
       throw error
     }
+  }
+
+
+
+
+  async deleteUser(id: string) {
+
+    const isRegistered = await this.userRepository.findOne({
+      where: {
+        user_id: id
+      }
+    })
+
+
+    if (!isRegistered) {
+      throw new NotFoundException(`User does not exist`)
+    }
+
+    await this.userRepository.delete(id)
+
+
   }
 
   async changeStatus(id: string) {
@@ -733,7 +756,7 @@ export class UserService {
         user_rg
       } = createPatientDto;
 
-      console.log(createPatientDto);
+
 
       if (!user_name || user_name.trim() === '') {
         throw new BadRequestException(`O nome não pode estar vazio`);
@@ -806,7 +829,7 @@ export class UserService {
       const dateParts = user_date_of_birth.split("/");
       patient.user_date_of_birth = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
 
-      console.log('Patient: ', patient);
+
 
       const patientSaved = await this.userRepository.save(patient);
 
