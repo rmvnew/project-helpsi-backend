@@ -728,8 +728,12 @@ export class UserService {
         user_email,
         user_password,
         psychologist_id,
-        user_date_of_birth
+        user_date_of_birth,
+        user_cpf,
+        user_rg
       } = createPatientDto;
+
+      console.log(createPatientDto);
 
       if (!user_name || user_name.trim() === '') {
         throw new BadRequestException(`O nome não pode estar vazio`);
@@ -796,9 +800,13 @@ export class UserService {
       patient.setTwoFactorSecret();
       patient.user_enrollment = Utils.getInstance().getEnrollmentCode()
       patient.user_2fa_active = false
+      patient.user_cpf = user_cpf
+      patient.user_rg = user_rg
 
       const dateParts = user_date_of_birth.split("/");
       patient.user_date_of_birth = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
+
+      console.log('Patient: ', patient);
 
       const patientSaved = await this.userRepository.save(patient);
 

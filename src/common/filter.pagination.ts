@@ -8,7 +8,7 @@ export class FilterPagination {
     page: number = 1
 
     @ApiProperty({ required: false, default: 10 })
-    limit: number = 10
+    limit: number = 8
 
     @ApiProperty({ required: false, default: 'ASC', enum: ['ASC', 'DESC'] })
     sort: string = 'DESC'

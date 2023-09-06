@@ -27,6 +27,12 @@ export class UserEntity {
     @Column()
     user_phone: string
 
+    @Column({ nullable: true })
+    user_rg?: string
+
+    @Column({ nullable: true })
+    user_cpf?: string
+
     @Column()
     user_enrollment?: string
 
