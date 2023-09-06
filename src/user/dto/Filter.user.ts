@@ -7,7 +7,9 @@ export class FilterUser extends FilterPagination {
     user_name: string
 
     @ApiProperty({ required: false })
-    showAll?: boolean
+    @ApiProperty({ required: false })
+    showAll?: 'true' | 'false';
+
 
 
 

@@ -160,13 +160,19 @@ export class UserService {
 
   async findAll(filter: FilterUser): Promise<Pagination<UserResponseDto>> {
 
+
     try {
       const { sort, orderBy, user_name, showAll } = filter
+
+
 
       const queryBuilder = this.userRepository.createQueryBuilder('user')
         .leftJoinAndSelect('user.profile', 'profile')
 
 
+      if (showAll === 'true') {
+        queryBuilder.andWhere('user.user_status = true');
+      }
 
       if (user_name) {
 
