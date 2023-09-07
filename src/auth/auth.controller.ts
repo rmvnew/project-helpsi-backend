@@ -3,7 +3,7 @@ https://docs.nestjs.com/controllers#controllers
 */
 
 import { Body, Controller, HttpCode, Post, Request, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiExcludeEndpoint, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiExcludeEndpoint, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PublicRoute } from 'src/common/decorators/public_route.decorator';
 import { LoginDTO } from './dto/login.dto';
 import { AuthService } from './shared/auth.service';
@@ -25,7 +25,11 @@ export class AuthController {
     @PublicRoute()
     @HttpCode(200)
     @UseGuards(LocalAuthGuard)
-    @ApiQuery({ name: 'twoFactorCode', required: false })
+    @ApiOperation({ description: '## Route to login - [Public]' })
+    @ApiBody({
+        description: '## O twoFactorCode é uma variável `opcional`. O uso desta variável é `obrigatório` apenas quando o usuário ativa a autenticação de dois fatores.',
+        type: LoginDTO
+    })
     async auth(@Body() auth: LoginDTO) {
         return this.authService.login(auth)
     }
