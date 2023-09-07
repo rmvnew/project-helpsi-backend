@@ -33,6 +33,9 @@ export class UserEntity {
     @Column({ nullable: true })
     user_cpf?: string
 
+    @Column({ nullable: true })
+    user_crp?: string
+
     @Column()
     user_enrollment?: string
 
