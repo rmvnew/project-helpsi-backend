@@ -94,6 +94,7 @@ export class AuthService {
 
 
     async refreshToken(id: string, refreshToken: string) {
+
         const user = await this.userRepository.findOne({
             where: {
                 user_id: id
@@ -118,14 +119,19 @@ export class AuthService {
 
         const hashed_refresh_token = await hash(refresh_token);
 
+        const expiration = await this.configService.get('auth.refresh_token_expires_in')
+
+
+
         await this.userService.updateRefreshToken(user.user_id, hashed_refresh_token)
+
 
         return {
             access_token: access_token,
             refresh_token: refresh_token,
             name: user.user_name,
-            profile: user.profile.profile_name,
-            expires_in: this.configService.get('auth.refresh_token_expires_in')
+            profile: user.user_profile_id,
+            expires_in: expiration
         }
     }
 
@@ -137,7 +143,7 @@ export class AuthService {
             throw new HttpException('User with this enrollment does not exist', HttpStatus.NOT_FOUND);
         }
 
-        await this.userService.updateRefreshToken(user.user_id, null);
+        // await this.userService.updateRefreshToken(user.user_id, null);
     }
 
     async getTokens(id: string, name: string, profile_id: number): Promise<Tokens> {

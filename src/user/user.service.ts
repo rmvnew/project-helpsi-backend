@@ -491,56 +491,7 @@ export class UserService {
 
   }
 
-  // async changePassword(id: string, currentPassword: string, firstPass: string, secondPass: string) {
 
-  //   try {
-
-  //     if (firstPass !== secondPass) {
-  //       throw new BadRequestException(`Passwords do not match`)
-  //     }
-
-  //     const user = await this.userRepository.findOne({
-  //       where: {
-  //         user_id: id
-  //       }
-  //     })
-
-  //     if (!user) {
-  //       throw new NotFoundException(`user with id ${id} does not exist`)
-  //     }
-
-  //     const checkPass = bcrypt.compareSync(currentPassword, user.user_password);
-
-  //     if (!checkPass) {
-  //       throw new BadRequestException(`Entered password is incorrect`)
-  //     }
-
-  //     Validations.getInstance().validateWithRegex(
-  //       firstPass,
-  //       ValidType.NO_SPACE
-  //     )
-
-  //     Validations.getInstance().verifyLength(
-  //       firstPass.trim(), 'Password', 5, 10
-  //     )
-
-  //     user.user_password = await Utils.getInstance().encryptPassword(firstPass)
-
-  //     user.user_first_access = false
-
-  //     await this.userRepository.save(user)
-
-  //     return {
-  //       Status: 'Success',
-  //       Message: 'Password changed successfully'
-  //     }
-
-  //   } catch (error) {
-  //     this.logger.error(`changePass error: ${error.message}`, error.stack)
-  //     throw error
-  //   }
-
-  // }
 
   async resetPassword(recover: RecoverInterface) {
 

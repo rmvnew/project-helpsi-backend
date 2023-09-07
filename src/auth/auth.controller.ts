@@ -3,7 +3,7 @@ https://docs.nestjs.com/controllers#controllers
 */
 
 import { Body, Controller, HttpCode, Post, Request, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiExcludeEndpoint, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PublicRoute } from 'src/common/decorators/public_route.decorator';
 import { LoginDTO } from './dto/login.dto';
 import { AuthService } from './shared/auth.service';
@@ -32,6 +32,7 @@ export class AuthController {
 
     @Post('/logout')
     @ApiBearerAuth()
+    @ApiExcludeEndpoint()
     @UseGuards(JwtAuthGuard)
     async logout(@Request() payload: any) {
         return this.authService.removeRefreshToken(payload.user.sub);
@@ -40,8 +41,11 @@ export class AuthController {
     @Post('/refresh_token')
     @ApiBearerAuth()
     @PublicRoute()
+    // @ApiExcludeEndpoint()
     @UseGuards(JwtRefreshAuthGuard)
     async refreshToken(@Request() payload: any) {
+
+
 
         return this.authService.refreshToken(payload.user.id, payload.user.refresh_token);
     }
@@ -49,6 +53,7 @@ export class AuthController {
 
     @Post('/validate')
     @ApiBearerAuth()
+    @ApiExcludeEndpoint()
     @UseGuards(JwtAuthGuard)
     validateToken(@Request() req): any {
         return { userId: req.user.sub, name: req.user.name };

@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import AccessProfile from 'src/auth/enums/permission.type';
 import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
@@ -50,7 +50,7 @@ export class UserController {
   @Get()
   @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
   @ApiOperation({ description: 'Get all users with or no filter by name - [ADMIN, PSYCHOLOGIST, ATTENDANT]' })
-  @ApiParam({ name: 'user_name', description: 'User name' })
+  @ApiQuery({ name: 'user_name', required: false, description: 'User name' })
   async findAll(
     @Query() query
   ): Promise<Pagination<UserResponseDto>> {
