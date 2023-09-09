@@ -4,6 +4,8 @@ import { plainToClass } from 'class-transformer';
 import { Pagination, paginate } from 'nestjs-typeorm-paginate';
 import * as QRCode from 'qrcode';
 import * as speakeasy from 'speakeasy';
+import { AddressResponseDto } from 'src/address/dto/address.response.dto';
+import { Address } from 'src/address/entities/address.entity';
 import { SortingType, ValidType } from 'src/common/Enums';
 import { Utils } from 'src/common/Utils';
 import { CodeRecoverInterface } from 'src/common/interfaces/email.interface';
@@ -13,6 +15,8 @@ import { HistoricRecover } from 'src/historic-recover/entities/historic-recover.
 import { HistoricRecoverService } from 'src/historic-recover/historic-recover.service';
 import { MailService } from 'src/mail/mail.service';
 import { ProfileEntity } from 'src/profile/entities/profile.entity';
+import { SpecialtyResponseDto } from 'src/specialty/dto/specialty.response.dto';
+import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { Repository } from 'typeorm';
 import { CreateHistoricRecoverDto } from '../historic-recover/dto/create-historic-recover.dto';
 import { FilterUser } from './dto/Filter.user';
@@ -40,7 +44,11 @@ export class UserService {
     private readonly mailservice: MailService,
     private readonly historicRecoverService: HistoricRecoverService,
     @InjectRepository(HistoricRecover)
-    private readonly historicRecoverRepository: Repository<HistoricRecover>
+    private readonly historicRecoverRepository: Repository<HistoricRecover>,
+    @InjectRepository(Address)
+    private readonly addressRepository: Repository<Address>,
+    @InjectRepository(Specialty)
+    private readonly specialtyRepository: Repository<Specialty>
 
   ) { }
 
@@ -48,13 +56,17 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
 
+
+
     try {
       const {
         user_name,
         user_profile_id: profile_id,
         user_email,
         user_password,
-        user_date_of_birth
+        user_date_of_birth,
+        user_crp,
+        specialtys
       } = createUserDto
 
       if (user_name.trim() == '' || user_name == undefined) {
@@ -111,6 +123,8 @@ export class UserService {
       user.setTwoFactorSecret()
       user.user_enrollment = Utils.getInstance().getEnrollmentCode()
       user.user_2fa_active = false
+      user.user_crp = user_crp
+      user.specialtys = specialtys
 
       const dateParts = user_date_of_birth.split("/");
       user.user_date_of_birth = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
@@ -156,57 +170,72 @@ export class UserService {
   }
 
 
-
   async findAll(filter: FilterUser): Promise<Pagination<UserResponseDto>> {
 
-
-
-
     try {
-      const { sort, orderBy, user_name, showActives } = filter
+      const { sort, orderBy, user_name, showActives } = filter;
 
 
-
-      const queryBuilder = this.userRepository.createQueryBuilder('user')
-        .leftJoinAndSelect('user.profile', 'profile')
-
-
+      const userQueryBuilder = this.userRepository.createQueryBuilder('user');
       if (showActives === "true") {
-
-        queryBuilder.andWhere('user.user_status = true');
+        userQueryBuilder.andWhere('user.user_status = true');
       }
-
       if (user_name) {
-
-
-
-        queryBuilder
-          .andWhere(`user.user_name LIKE :user_name`, {
-            user_name: `%${user_name}%`
-          })
-
+        userQueryBuilder.andWhere(`user.user_name LIKE :user_name`, {
+          user_name: `%${user_name}%`
+        });
       }
-
       if (orderBy == SortingType.DATE) {
-
-        queryBuilder.orderBy('user.create_at', `${sort === 'DESC' ? 'DESC' : 'ASC'}`)
-
+        userQueryBuilder.orderBy('user.create_at', `${sort === 'DESC' ? 'DESC' : 'ASC'}`);
       } else {
+        userQueryBuilder.orderBy('user.user_name', `${sort === 'DESC' ? 'DESC' : 'ASC'}`);
+      }
+      const page = await paginate<UserEntity>(userQueryBuilder, filter);
 
-        queryBuilder.orderBy('user.user_name', `${sort === 'DESC' ? 'DESC' : 'ASC'}`)
 
+      for (let user of page.items) {
+
+
+        if (user.user_id) {
+
+          const currentUser = await this.userRepository.createQueryBuilder('user')
+            .leftJoinAndSelect('user.address', 'address')
+            .where('user.user_id = :id', { id: user.user_id })
+            .getOne()
+
+          const currentAddress = currentUser.address
+
+          const specialtys = await this.specialtyRepository.createQueryBuilder("specialty")
+            .innerJoin("specialty.users", "user")
+            .where("user.user_id = :userId", { userId: user.user_id })
+            .getMany();
+
+          const specialtyDtos = specialtys.map(specialty => {
+            return {
+              specialty_id: specialty.specialty_id,
+              specialty_name: specialty.specialty_name,
+              users: specialty.users
+            }
+          });
+
+          user.specialtys = specialtyDtos;
+          user.address = this.transformAddress(currentAddress)
+
+        }
       }
 
-      const page = await paginate<UserEntity>(queryBuilder, filter)
 
       const userDtos: UserResponseDto[] = plainToClass(UserResponseDto, page.items, {
         excludeExtraneousValues: true
       });
 
+
+
       const transformedPage = {
         ...page,
         items: userDtos,
       };
+
 
       transformedPage.links.first = transformedPage.links.first === '' ? '' : `${transformedPage.links.first}&sort=${sort}&orderBy=${orderBy}`;
       transformedPage.links.previous = transformedPage.links.previous === '' ? '' : `${transformedPage.links.previous}&sort=${sort}&orderBy=${orderBy}`;
@@ -217,10 +246,23 @@ export class UserService {
 
     } catch (error) {
       this.logger.error(`findAll error: ${error.message}`, error.stack)
-      throw error
+      throw error;
     }
-
   }
+
+
+  transformSpecialtys(specialtys: Specialty[]): SpecialtyResponseDto[] {
+    return plainToClass(SpecialtyResponseDto, specialtys, {
+      excludeExtraneousValues: true
+    });
+  }
+
+  transformAddress(address: Address): AddressResponseDto {
+    return plainToClass(AddressResponseDto, address, {
+      excludeExtraneousValues: true
+    });
+  }
+
 
   async findByEmail(email: string) {
     try {

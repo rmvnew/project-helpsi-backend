@@ -82,7 +82,7 @@ export class UserEntity {
     @OneToMany(() => HistoricRecover, recover => recover.user)
     historics: HistoricRecover[];
 
-    @OneToOne(() => Address, { nullable: true, cascade: true })
+    @OneToOne(() => Address, { nullable: true, cascade: true, eager: true })
     @JoinColumn({ name: 'address_id' })
     address?: Address
 

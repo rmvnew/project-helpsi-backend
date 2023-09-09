@@ -1,4 +1,6 @@
 import { Expose } from "class-transformer"
+import { AddressResponseDto } from "src/address/dto/address.response.dto"
+import { SpecialtyResponseDto } from "src/specialty/dto/specialty.response.dto"
 
 export class UserResponseDto {
 
@@ -25,6 +27,15 @@ export class UserResponseDto {
 
     @Expose()
     user_profile_id: number
+
+    @Expose()
+    user_crp: string
+
+    @Expose()
+    address: AddressResponseDto
+
+    @Expose()
+    specialtys: SpecialtyResponseDto[]
 
     @Expose()
     create_at: Date
