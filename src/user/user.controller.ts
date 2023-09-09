@@ -80,9 +80,9 @@ export class UserController {
     description: `# Esta rota redefine a senha do usuário.
     Tipo: Publica. 
     Acesso: [Livre]` })
-  @ApiParam({ name: 'code', description: '### Código especial, com duração de cinco minutos obtido através do email.' })
-  @ApiParam({ name: 'password', description: '### Nova senha. ' })
-  @ApiParam({ name: 'email', description: '### E-mail do usuário que está resetando a senha ' })
+  @ApiQuery({ name: 'code', description: '### Código especial, com duração de cinco minutos obtido através do email.' })
+  @ApiQuery({ name: 'password', description: '### Nova senha. ' })
+  @ApiQuery({ name: 'email', description: '### E-mail do usuário que está resetando a senha ' })
   async resetPassword(
     @Query('code') code: number,
     @Query('password') password: string,
@@ -105,10 +105,13 @@ export class UserController {
     description: `# Esta rota dispara o email que contém o código para redefinição de senha.
     Tipo: Publica. 
     Acesso: [Livre]` })
-  @ApiParam({ name: 'email', description: '### E-mail do usuário que está resetando a senha. ' })
+  @ApiQuery({ name: 'email', description: '### E-mail do usuário que está resetando a senha. ' })
   async recoverCode(
     @Query('email') email: string
   ) {
+
+    console.log('Email controller: ', email);
+
     return this.userService.recoverCode(email)
   }
 
