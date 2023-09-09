@@ -24,6 +24,7 @@ import { CreatePatientDto } from './dto/create-patient.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ListPsychologistResponseDto } from './dto/list.psychologist.response.dto';
 import { PatientResponseDto } from './dto/patient.response.dto';
+import { PsychologistBasicResponseDto } from './dto/psychologist.basic.response.dto';
 import { PsychologistResponseDto } from './dto/psychologist.response.dto';
 import { Qrcode2fa } from './dto/qrcode.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -200,10 +201,12 @@ export class UserService {
 
           const currentUser = await this.userRepository.createQueryBuilder('user')
             .leftJoinAndSelect('user.address', 'address')
+            .leftJoinAndSelect('user.psychologist', 'psychologist')
             .where('user.user_id = :id', { id: user.user_id })
             .getOne()
 
           const currentAddress = currentUser.address
+          const currentPsychologist = currentUser.psychologist
 
           const specialtys = await this.specialtyRepository.createQueryBuilder("specialty")
             .innerJoin("specialty.users", "user")
@@ -220,9 +223,13 @@ export class UserService {
 
           user.specialtys = specialtyDtos;
           user.address = this.transformAddress(currentAddress)
+          user['basicPsychologist'] = this.transformPsychologist(currentPsychologist)
+
+
 
         }
       }
+
 
 
       const userDtos: UserResponseDto[] = plainToClass(UserResponseDto, page.items, {
@@ -259,6 +266,12 @@ export class UserService {
 
   transformAddress(address: Address): AddressResponseDto {
     return plainToClass(AddressResponseDto, address, {
+      excludeExtraneousValues: true
+    });
+  }
+
+  transformPsychologist(psychologist: UserEntity): PsychologistBasicResponseDto {
+    return plainToClass(PsychologistBasicResponseDto, psychologist, {
       excludeExtraneousValues: true
     });
   }
@@ -863,7 +876,7 @@ export class UserService {
 
       console.log('Patient: ', patient);
 
-      const psychologistDto = plainToClass(UserResponseDto, patient.psychologist, {
+      const psychologistDto = plainToClass(PsychologistResponseDto, patient.psychologist, {
         excludeExtraneousValues: true
       });
 
@@ -895,7 +908,7 @@ export class UserService {
         throw new NotFoundException(`Psicólogo com ID ${psychologist_id} não encontrado`);
       }
 
-      const patientsDto = psychologist.patients.map(patient => plainToClass(UserResponseDto, patient, {
+      const patientsDto = psychologist.patients.map(patient => plainToClass(PatientResponseDto, patient, {
         excludeExtraneousValues: true
       }));
 

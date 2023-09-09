@@ -1,7 +1,7 @@
 import { Expose } from "class-transformer";
 import { Address } from "src/address/entities/address.entity";
 import { Specialty } from "src/specialty/entities/specialty.entity";
-import { UserResponseDto } from "./user.response.dto";
+import { PatientResponseDto } from "./patient.response.dto";
 
 export class PsychologistResponseDto {
 
@@ -45,5 +45,5 @@ export class PsychologistResponseDto {
     update_at: Date;
 
     @Expose()
-    patients: UserResponseDto[];
+    patients: PatientResponseDto[];
 }
