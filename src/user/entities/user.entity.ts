@@ -95,7 +95,7 @@ export class UserEntity {
 
     @ManyToMany(() => Specialty, specialty => specialty.users)
     @JoinTable({
-        name: 'user_specialty',
+        name: 'USER_SPECIALTY',
         joinColumn: {
             name: 'user_id',
             referencedColumnName: 'user_id'

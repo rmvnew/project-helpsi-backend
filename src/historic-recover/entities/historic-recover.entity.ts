@@ -4,7 +4,7 @@ import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm"
 
 
 
-@Entity('HistoricRecover')
+@Entity('HISTORIC_RECOVER')
 export class HistoricRecover {
 
     @PrimaryGeneratedColumn({ name: 'historic_recover_id' })
