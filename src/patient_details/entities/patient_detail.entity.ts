@@ -1,5 +1,4 @@
 import { DiaryEntry } from "src/diary_entry/entities/diary_entry.entity";
-import { Medication } from "src/medication/entities/medication.entity";
 import { UserEntity } from "src/user/entities/user.entity";
 import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
@@ -37,8 +36,7 @@ export class PatientDetails {
     @OneToMany(() => DiaryEntry, diaryEntry => diaryEntry.patient)
     diary_entries: DiaryEntry[];
 
-    @OneToMany(() => Medication, medication => medication.patient)
-    medications: Medication[];
+
 
 
 }

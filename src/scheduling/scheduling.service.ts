@@ -29,7 +29,7 @@ export class SchedulingService {
     } = createSchedulingDto;
 
 
-    const startDateTime = DateTime.fromISO(select_date_time, { zone: 'UTC' }).setZone('America/Manaus');
+    const startDateTime = DateTime.fromISO(select_date_time.toString(), { zone: 'UTC' }).setZone('America/Manaus');
 
     const endDateTime = startDateTime.plus({ hours: duration });
 
@@ -77,8 +77,11 @@ export class SchedulingService {
     const appointmentsForDay = await this.schedulingRepository.find({
       where: {
         start_time: Between(selectedDate, nextDay)
-      }
+      },
+      relations: ["psychologist"]
     });
+
+
 
     const timeSlots = this.generateTimeSlots(selectedDate);
     const schedule = [];
@@ -88,12 +91,20 @@ export class SchedulingService {
         app.start_time.getTime() === slot.getTime()
       );
 
+      const psychologist_id = matchingAppointment ? matchingAppointment?.psychologist?.user_id : null
+
+      delete matchingAppointment?.psychologist
+
       schedule.push({
         time: slot.toISOString(),
         isBooked: !!matchingAppointment,
-        appointmentDetails: matchingAppointment || null
+        appointmentDetails: matchingAppointment || null,
+        psychologistId: psychologist_id
       });
     }
+
+
+    // console.log(schedule);
 
     return schedule;
   }

@@ -1,26 +1,93 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserEntity } from 'src/user/entities/user.entity';
+import { Repository } from 'typeorm';
 import { CreatePatientDetailDto } from './dto/create-patient_detail.dto';
 import { UpdatePatientDetailDto } from './dto/update-patient_detail.dto';
+import { PatientDetails } from './entities/patient_detail.entity';
 
 @Injectable()
 export class PatientDetailsService {
-  create(createPatientDetailDto: CreatePatientDetailDto) {
-    return 'This action adds a new patientDetail';
+
+
+  constructor(
+    @InjectRepository(PatientDetails)
+    private readonly patientDetailsRepository: Repository<PatientDetails>,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>
+  ) { }
+
+  async create(createPatientDetailDto: CreatePatientDetailDto) {
+
+    const { patient_id } = createPatientDetailDto
+
+    const currentPatient = await this.userRepository.findOne({
+      where: {
+        user_id: patient_id
+      }
+    })
+
+
+    const patient_details = this.patientDetailsRepository.create(createPatientDetailDto)
+
+    const saved = await this.patientDetailsRepository.save(patient_details)
+
+    currentPatient.patientDetails = saved
+
+    await this.userRepository.save(currentPatient)
+
+    return saved
   }
 
-  findAll() {
-    return `This action returns all patientDetails`;
+
+
+  async findOne(id: string) {
+    return this.patientDetailsRepository.findOne({
+      where: {
+        patient_details_id: id
+      }
+    })
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} patientDetail`;
+  async update(id: string, updatePatientDetailDto: UpdatePatientDetailDto) {
+
+
+    const isRegistered = await this.findOne(id)
+
+    if (!isRegistered) {
+      throw new NotFoundException('Nenhum registro encontrado!')
+    }
+
+    const { patient_id } = updatePatientDetailDto
+
+    const patient_Details = await this.patientDetailsRepository.preload({
+      patient_details_id: id,
+      ...updatePatientDetailDto
+    })
+
+
+    const currentPatient = await this.userRepository.findOne({
+      where: {
+        user_id: patient_id
+      }
+    })
+
+    const saved = await this.patientDetailsRepository.save(patient_Details)
+
+    currentPatient.patientDetails = saved
+
+    await this.userRepository.save(currentPatient)
+
+    return saved
   }
 
-  update(id: number, updatePatientDetailDto: UpdatePatientDetailDto) {
-    return `This action updates a #${id} patientDetail`;
-  }
+  async remove(id: string) {
+    const isRegistered = await this.findOne(id)
 
-  remove(id: number) {
-    return `This action removes a #${id} patientDetail`;
+    if (!isRegistered) {
+      throw new NotFoundException('Nenhum registro encontrado!')
+    }
+
+    await this.patientDetailsRepository.delete(isRegistered.patient_details_id)
   }
 }

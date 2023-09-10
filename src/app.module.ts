@@ -10,12 +10,11 @@ import { SwaggerModule } from './config/swagger/swagger.module';
 import { DiaryEntryModule } from './diary_entry/diary_entry.module';
 import { HistoricRecoverModule } from './historic_recover/historic-recover.module';
 import { EmailModule } from './mail/mail.module';
-import { MedicationModule } from './medication/medication.module';
 import { PatientDetailsModule } from './patient_details/patient_details.module';
 import { ProfileModule } from './profile/profile.module';
+import { SchedulingModule } from './scheduling/scheduling.module';
 import { SpecialtyModule } from './specialty/specialty.module';
 import { UserModule } from './user/user.module';
-import { SchedulingModule } from './scheduling/scheduling.module';
 
 @Module({
   imports: [
@@ -30,7 +29,6 @@ import { SchedulingModule } from './scheduling/scheduling.module';
     AddressModule,
     SpecialtyModule,
     PatientDetailsModule,
-    MedicationModule,
     DiaryEntryModule,
     SchedulingModule
   ],
