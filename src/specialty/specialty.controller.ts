@@ -20,6 +20,14 @@ export class SpecialtyController {
     return this.specialtyService.create(createSpecialtyDto);
   }
 
+  @Post('/list')
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
+  saveAll(@Body() list: string[]) {
+
+
+    this.specialtyService.saveAll(list)
+  }
+
   @Get()
   @UseGuards(PermissionGuard(AccessProfile.ADMIN))
   findAll() {
@@ -43,4 +51,5 @@ export class SpecialtyController {
   remove(@Param('id') id: string) {
     return this.specialtyService.remove(id);
   }
+
 }

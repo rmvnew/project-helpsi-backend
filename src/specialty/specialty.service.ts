@@ -31,6 +31,22 @@ export class SpecialtyService {
     return this.specialtyRepository.save(specialty)
   }
 
+  async saveAll(list: any) {
+
+
+    const { specialties } = list
+
+    for (let item of specialties) {
+
+      const currentItem: CreateSpecialtyDto = {
+        specialty_name: item
+      }
+      this.create(currentItem)
+    }
+
+
+  }
+
   async findByName(name: string) {
     return this.specialtyRepository.findOne({
       where: {
