@@ -33,7 +33,7 @@ export class SchedulingController {
     description: `# Esta rota mostra horários disponíveis para esta data.
     Tipo: Autenticada. 
     Acesso: [Administrador, Psicólogo, Atendente]` })
-  @ApiQuery({ name: 'date', description: '### informe a data para realizar esta busca (yyy-mm-dd)' })
+  @ApiQuery({ name: 'date', description: '### informe a data para realizar esta busca (yyyy-mm-dd)' })
   async checkAvailability(@Query('date') date: string) {
     return await this.schedulingService.checkAvailability(date);
   }

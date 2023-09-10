@@ -1,5 +1,5 @@
 import { UserEntity } from "src/user/entities/user.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 
 @Entity('SCHEDULING')
@@ -9,10 +9,19 @@ export class Scheduling {
     scheduling_id: string;
 
     @Column({ type: 'datetime' })
-    startTime: Date;
+    start_time: Date;
 
     @Column({ type: 'datetime' })
-    endTime: Date;
+    end_time: Date;
+
+    @Column()
+    registrant_name?: string
+
+    @CreateDateColumn()
+    create_at: Date
+
+    @UpdateDateColumn()
+    update_at: Date
 
     @ManyToOne(() => UserEntity, user => user.appointments)
     @JoinColumn({ name: 'patient_id' })

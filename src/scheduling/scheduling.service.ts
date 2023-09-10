@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { DateTime } from 'luxon';
 import { UserEntity } from 'src/user/entities/user.entity';
-import { Between, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
+import { Between, LessThanOrEqual, MoreThan, Repository } from 'typeorm';
 import { CreateSchedulingDto } from './dto/create-scheduling.dto';
 import { Scheduling } from './entities/scheduling.entity';
 
@@ -19,33 +20,41 @@ export class SchedulingService {
 
 
   async create(createSchedulingDto: CreateSchedulingDto) {
+    const {
+      duration,
+      patient_id,
+      psychologist_id,
+      select_date_time,
+      registrant_name
+    } = createSchedulingDto;
 
-    const { duration, patient_id, psychologist_id, selectDateTime } = createSchedulingDto
+
+    const startDateTime = DateTime.fromISO(select_date_time, { zone: 'UTC' }).setZone('America/Manaus');
+
+    const endDateTime = startDateTime.plus({ hours: duration });
 
     const existingAppointment = await this.schedulingRepository.findOne({
       where: [
-        { startTime: LessThanOrEqual(selectDateTime), endTime: MoreThan(selectDateTime) },
-        { startTime: LessThan(new Date(selectDateTime.getTime() + duration)), endTime: MoreThanOrEqual(selectDateTime) }
+        { start_time: LessThanOrEqual(startDateTime.toJSDate()), end_time: MoreThan(startDateTime.toJSDate()) },
+        { start_time: LessThanOrEqual(endDateTime.toJSDate()), end_time: MoreThan(endDateTime.toJSDate()) }
       ]
-
     });
 
     if (existingAppointment) {
-      throw new Error("The selected time slot is already booked.");
+      throw new BadRequestException("Horário já foi reservado.");
     }
 
-    const currentPatient = await this.getUserById(patient_id)
-    const currentPsychologist = await this.getUserById(psychologist_id)
+    const currentPatient = await this.getUserById(patient_id);
+    const currentPsychologist = await this.getUserById(psychologist_id);
 
     const newAppointment = new Scheduling();
-
-    newAppointment.startTime = selectDateTime;
-    newAppointment.endTime = new Date(selectDateTime.getTime() + duration);
+    newAppointment.start_time = startDateTime.toJSDate();
+    newAppointment.end_time = endDateTime.toJSDate();
     newAppointment.patient = currentPatient;
     newAppointment.psychologist = currentPsychologist;
+    newAppointment.registrant_name = registrant_name ? registrant_name : 'N/A'
+
     await this.schedulingRepository.save(newAppointment);
-
-
   }
 
 
@@ -59,13 +68,15 @@ export class SchedulingService {
 
   async checkAvailability(currentDate: string) {
 
-    const selectedDate = new Date(currentDate); // Exemplo de data 2023-05-15
+    const selectedDate = new Date(currentDate);
+    selectedDate.setMinutes(selectedDate.getMinutes() + selectedDate.getTimezoneOffset());
+
     const nextDay = new Date(selectedDate);
     nextDay.setDate(selectedDate.getDate() + 1);
 
     const appointmentsForDay = await this.schedulingRepository.find({
       where: {
-        startTime: Between(selectedDate, nextDay)
+        start_time: Between(selectedDate, nextDay)
       }
     });
 
@@ -74,33 +85,37 @@ export class SchedulingService {
 
     for (const slot of timeSlots) {
       const matchingAppointment = appointmentsForDay.find(app =>
-        app.startTime.getTime() === slot.getTime()
+        app.start_time.getTime() === slot.getTime()
       );
 
       schedule.push({
-        time: slot,
+        time: slot.toISOString(),
         isBooked: !!matchingAppointment,
         appointmentDetails: matchingAppointment || null
       });
     }
 
-    return schedule
-
+    return schedule;
   }
 
   generateTimeSlots(date: Date): Date[] {
-    const startTime = 8; // 8 AM
-    const endTime = 17; // 5 PM
+    const UTC_OFFSET_MANAUS = 0;
+    const startTime = 8;
+    const endTime = 18;
     const slots = [];
 
     for (let hour = startTime; hour < endTime; hour++) {
       const slot = new Date(date);
-      slot.setHours(hour, 0, 0, 0);
+
+      slot.setUTCHours(hour + UTC_OFFSET_MANAUS, 0, 0, 0);
       slots.push(slot);
     }
 
     return slots;
   }
+
+
+
 
 
 

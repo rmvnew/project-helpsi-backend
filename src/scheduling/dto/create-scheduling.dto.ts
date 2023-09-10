@@ -8,12 +8,15 @@ export class CreateSchedulingDto {
     duration: number
 
     @ApiProperty()
-    selectDateTime: Date
+    select_date_time: string
 
     @ApiProperty()
     patient_id: string;
 
     @ApiProperty()
     psychologist_id: string;
+
+    @ApiProperty()
+    registrant_name?: string
 
 }

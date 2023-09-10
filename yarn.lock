@@ -1095,6 +1095,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/luxon@^3.3.2":
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/@types/luxon/-/luxon-3.3.2.tgz#f6e3524c2486b949a4db445e85d93c8e9886dfe2"
+  integrity sha512-l5cpE57br4BIjK+9BSkFBOsWtwv6J9bJpC7gdXIzZyI0vuKvNTk0wZZrkQxMGsUAuGW9+WMNWF2IJMD7br2yeQ==
+
 "@types/mime@*":
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-3.0.1.tgz#5f8f2bca0a5863cb69bc0b0acd88c96cb1d4ae10"
@@ -3930,6 +3935,11 @@ lru-cache@^8.0.0:
   version "8.0.5"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-8.0.5.tgz#983fe337f3e176667f8e567cfcce7cb064ea214e"
   integrity sha512-MhWWlVnuab1RG5/zMRRcVGXZLCXrZTgfwMikgzCegsPnG62yDQo5JnqKkrK4jO5iKqDAZGItAqN5CtKBCBWRUA==
+
+luxon@^3.4.3:
+  version "3.4.3"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-3.4.3.tgz#8ddf0358a9492267ffec6a13675fbaab5551315d"
+  integrity sha512-tFWBiv3h7z+T/tDaoxA8rqTxy1CHV6gHS//QdaH4pulbq/JuBSGgQspQQqcgnwdAx6pNI7cmvz5Sv/addzHmUg==
 
 macos-release@^2.5.0:
   version "2.5.1"
