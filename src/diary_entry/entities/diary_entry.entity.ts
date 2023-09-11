@@ -1,5 +1,5 @@
 import { PatientDetails } from "src/patient_details/entities/patient_detail.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 
 @Entity('DIARY_ENTRY')
@@ -8,11 +8,14 @@ export class DiaryEntry {
     @PrimaryGeneratedColumn('uuid')
     diary_entry_id: string;
 
-    @Column({ type: 'date' })
+    @CreateDateColumn()
     register_date: Date;
 
     @Column({ type: 'text' })
     text: string;
+
+    @UpdateDateColumn()
+    update_at: Date
 
     @ManyToOne(() => PatientDetails, patient => patient.diary_entries)
     @JoinColumn({
