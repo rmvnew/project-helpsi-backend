@@ -132,11 +132,12 @@ export class UserController {
 
 
   @Get('/allPsychologists')
-  @UseGuards(PermissionGuard(AccessProfile.ALL))
+  // @UseGuards(PermissionGuard(AccessProfile.ALL))
+  @PublicRoute()
   @ApiOperation({
     description: `# Esta rota obtém a lista de todos psicólogos.
-    Tipo: Autenticada. 
-    Acesso: [Paciente,Administrador, Psicólogo, Atendente]` })
+    Tipo: Publica. 
+    Acesso: [Livre]` })
   async getAllPsychologists() {
 
     return this.userService.getAllPsychologists()
