@@ -19,6 +19,8 @@ export class PatientDetailsService {
 
   async create(createPatientDetailDto: CreatePatientDetailDto) {
 
+    const { last_session_date } = createPatientDetailDto
+
     const { patient_id } = createPatientDetailDto
 
     const currentPatient = await this.userRepository.findOne({
@@ -29,6 +31,10 @@ export class PatientDetailsService {
 
 
     const patient_details = this.patientDetailsRepository.create(createPatientDetailDto)
+
+
+    patient_details.start_date = new Date()
+    patient_details.last_session_date = new Date(last_session_date)
 
     const saved = await this.patientDetailsRepository.save(patient_details)
 
