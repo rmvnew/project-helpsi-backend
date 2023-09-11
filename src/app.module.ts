@@ -12,6 +12,7 @@ import { ProfileModule } from './profile/profile.module';
 import { UserModule } from './user/user.module';
 import { AddressModule } from './address/address.module';
 import { SpecialtyModule } from './specialty/specialty.module';
+import { IaModule } from './ia/ia.module';
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import { SpecialtyModule } from './specialty/specialty.module';
     EmailModule,
     HistoricRecoverModule,
     AddressModule,
-    SpecialtyModule
+    SpecialtyModule,
+    IaModule
   ],
   controllers: [],
   providers: [
