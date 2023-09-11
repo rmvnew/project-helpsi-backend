@@ -11,7 +11,7 @@ export default () => ({
     auth: {
         token_secret: process.env.JWT_SECRET,
         token_expires_in: process.env.JWT_EXPIRES_IN,
-        refresh_token_secret:  process.env.JWT_REFRESH_TOKEN_SECRET,
+        refresh_token_secret: process.env.JWT_REFRESH_TOKEN_SECRET,
         refresh_token_expires_in: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN
     },
     database: {
@@ -26,10 +26,12 @@ export default () => ({
         synchronize: true,
         extra: {
             trustServerCertificate: true,
-    
-        }
+
+        },
+        logging: false,
+        timezone: "Z"
     },
-    
+
     minio: {
         endpoint: process.env.MINIO_ENDPOINT,
         port: parseInt(process.env.MINIO_PORT),
