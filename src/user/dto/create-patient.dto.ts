@@ -9,4 +9,11 @@ export class CreatePatientDto extends CreateUserDto {
 
     @ApiProperty()
     user_genre?: UserGenderType
+
+    @ApiProperty({ required: false })
+    user_rg?: string
+
+    @ApiProperty({ required: false })
+    user_cpf?: string
+
 }

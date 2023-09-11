@@ -1,26 +1,30 @@
 import { BadGatewayException, BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as bcrypt from 'bcrypt';
 import { plainToClass } from 'class-transformer';
 import { Pagination, paginate } from 'nestjs-typeorm-paginate';
 import * as QRCode from 'qrcode';
 import * as speakeasy from 'speakeasy';
+import { AddressResponseDto } from 'src/address/dto/address.response.dto';
+import { Address } from 'src/address/entities/address.entity';
 import { SortingType, ValidType } from 'src/common/Enums';
 import { Utils } from 'src/common/Utils';
 import { CodeRecoverInterface } from 'src/common/interfaces/email.interface';
 import { RecoverInterface } from 'src/common/interfaces/recover.interface';
 import { Validations } from 'src/common/validations';
-import { HistoricRecover } from 'src/historic-recover/entities/historic-recover.entity';
-import { HistoricRecoverService } from 'src/historic-recover/historic-recover.service';
+import { HistoricRecover } from 'src/historic_recover/entities/historic-recover.entity';
+import { HistoricRecoverService } from 'src/historic_recover/historic-recover.service';
 import { MailService } from 'src/mail/mail.service';
 import { ProfileEntity } from 'src/profile/entities/profile.entity';
+import { SpecialtyResponseDto } from 'src/specialty/dto/specialty.response.dto';
+import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { Repository } from 'typeorm';
-import { CreateHistoricRecoverDto } from '../historic-recover/dto/create-historic-recover.dto';
+import { CreateHistoricRecoverDto } from '../historic_recover/dto/create-historic-recover.dto';
 import { FilterUser } from './dto/Filter.user';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ListPsychologistResponseDto } from './dto/list.psychologist.response.dto';
 import { PatientResponseDto } from './dto/patient.response.dto';
+import { PsychologistBasicResponseDto } from './dto/psychologist.basic.response.dto';
 import { PsychologistResponseDto } from './dto/psychologist.response.dto';
 import { Qrcode2fa } from './dto/qrcode.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -41,7 +45,11 @@ export class UserService {
     private readonly mailservice: MailService,
     private readonly historicRecoverService: HistoricRecoverService,
     @InjectRepository(HistoricRecover)
-    private readonly historicRecoverRepository: Repository<HistoricRecover>
+    private readonly historicRecoverRepository: Repository<HistoricRecover>,
+    @InjectRepository(Address)
+    private readonly addressRepository: Repository<Address>,
+    @InjectRepository(Specialty)
+    private readonly specialtyRepository: Repository<Specialty>
 
   ) { }
 
@@ -49,13 +57,17 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
 
+
+
     try {
       const {
         user_name,
         user_profile_id: profile_id,
         user_email,
         user_password,
-        user_date_of_birth
+        user_date_of_birth,
+        user_crp,
+        specialtys
       } = createUserDto
 
       if (user_name.trim() == '' || user_name == undefined) {
@@ -112,6 +124,8 @@ export class UserService {
       user.setTwoFactorSecret()
       user.user_enrollment = Utils.getInstance().getEnrollmentCode()
       user.user_2fa_active = false
+      user.user_crp = user_crp
+      user.specialtys = specialtys
 
       const dateParts = user_date_of_birth.split("/");
       user.user_date_of_birth = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
@@ -157,45 +171,78 @@ export class UserService {
   }
 
 
-
   async findAll(filter: FilterUser): Promise<Pagination<UserResponseDto>> {
 
     try {
-      const { sort, orderBy, user_name } = filter
+      const { sort, orderBy, user_name, showActives } = filter;
 
-      const queryBuilder = this.userRepository.createQueryBuilder('user')
-        .leftJoinAndSelect('user.profile', 'profile')
 
+      const userQueryBuilder = this.userRepository.createQueryBuilder('user');
+      if (showActives === "true") {
+        userQueryBuilder.andWhere('user.user_status = true');
+      }
       if (user_name) {
-
-
-        queryBuilder
-          .where(`user.user_name LIKE :user_name`, {
-            user_name: `%${user_name}%`
-          })
-
+        userQueryBuilder.andWhere(`user.user_name LIKE :user_name`, {
+          user_name: `%${user_name}%`
+        });
       }
-
       if (orderBy == SortingType.DATE) {
-
-        queryBuilder.orderBy('user.create_at', `${sort === 'DESC' ? 'DESC' : 'ASC'}`)
-
+        userQueryBuilder.orderBy('user.create_at', `${sort === 'DESC' ? 'DESC' : 'ASC'}`);
       } else {
+        userQueryBuilder.orderBy('user.user_name', `${sort === 'DESC' ? 'DESC' : 'ASC'}`);
+      }
+      const page = await paginate<UserEntity>(userQueryBuilder, filter);
 
-        queryBuilder.orderBy('user.user_name', `${sort === 'DESC' ? 'DESC' : 'ASC'}`)
 
+      for (let user of page.items) {
+
+
+        if (user.user_id) {
+
+          const currentUser = await this.userRepository.createQueryBuilder('user')
+            .leftJoinAndSelect('user.address', 'address')
+            .leftJoinAndSelect('user.psychologist', 'psychologist')
+            .where('user.user_id = :id', { id: user.user_id })
+            .getOne()
+
+          const currentAddress = currentUser.address
+          const currentPsychologist = currentUser.psychologist
+
+          const specialtys = await this.specialtyRepository.createQueryBuilder("specialty")
+            .innerJoin("specialty.users", "user")
+            .where("user.user_id = :userId", { userId: user.user_id })
+            .getMany();
+
+          const specialtyDtos = specialtys.map(specialty => {
+            return {
+              specialty_id: specialty.specialty_id,
+              specialty_name: specialty.specialty_name,
+              users: specialty.users
+            }
+          });
+
+          user.specialtys = specialtyDtos;
+          user.address = this.transformAddress(currentAddress)
+          user['basicPsychologist'] = this.transformPsychologist(currentPsychologist)
+
+
+
+        }
       }
 
-      const page = await paginate<UserEntity>(queryBuilder, filter)
+
 
       const userDtos: UserResponseDto[] = plainToClass(UserResponseDto, page.items, {
         excludeExtraneousValues: true
       });
 
+
+
       const transformedPage = {
         ...page,
         items: userDtos,
       };
+
 
       transformedPage.links.first = transformedPage.links.first === '' ? '' : `${transformedPage.links.first}&sort=${sort}&orderBy=${orderBy}`;
       transformedPage.links.previous = transformedPage.links.previous === '' ? '' : `${transformedPage.links.previous}&sort=${sort}&orderBy=${orderBy}`;
@@ -206,10 +253,29 @@ export class UserService {
 
     } catch (error) {
       this.logger.error(`findAll error: ${error.message}`, error.stack)
-      throw error
+      throw error;
     }
-
   }
+
+
+  transformSpecialtys(specialtys: Specialty[]): SpecialtyResponseDto[] {
+    return plainToClass(SpecialtyResponseDto, specialtys, {
+      excludeExtraneousValues: true
+    });
+  }
+
+  transformAddress(address: Address): AddressResponseDto {
+    return plainToClass(AddressResponseDto, address, {
+      excludeExtraneousValues: true
+    });
+  }
+
+  transformPsychologist(psychologist: UserEntity): PsychologistBasicResponseDto {
+    return plainToClass(PsychologistBasicResponseDto, psychologist, {
+      excludeExtraneousValues: true
+    });
+  }
+
 
   async findByEmail(email: string) {
     try {
@@ -374,6 +440,27 @@ export class UserService {
     }
   }
 
+
+
+
+  async deleteUser(id: string) {
+
+    const isRegistered = await this.userRepository.findOne({
+      where: {
+        user_id: id
+      }
+    })
+
+
+    if (!isRegistered) {
+      throw new NotFoundException(`User does not exist`)
+    }
+
+    await this.userRepository.delete(id)
+
+
+  }
+
   async changeStatus(id: string) {
 
     try {
@@ -463,56 +550,7 @@ export class UserService {
 
   }
 
-  async changePassword(id: string, currentPassword: string, firstPass: string, secondPass: string) {
 
-    try {
-
-      if (firstPass !== secondPass) {
-        throw new BadRequestException(`Passwords do not match`)
-      }
-
-      const user = await this.userRepository.findOne({
-        where: {
-          user_id: id
-        }
-      })
-
-      if (!user) {
-        throw new NotFoundException(`user with id ${id} does not exist`)
-      }
-
-      const checkPass = bcrypt.compareSync(currentPassword, user.user_password);
-
-      if (!checkPass) {
-        throw new BadRequestException(`Entered password is incorrect`)
-      }
-
-      Validations.getInstance().validateWithRegex(
-        firstPass,
-        ValidType.NO_SPACE
-      )
-
-      Validations.getInstance().verifyLength(
-        firstPass.trim(), 'Password', 5, 10
-      )
-
-      user.user_password = await Utils.getInstance().encryptPassword(firstPass)
-
-      user.user_first_access = false
-
-      await this.userRepository.save(user)
-
-      return {
-        Status: 'Success',
-        Message: 'Password changed successfully'
-      }
-
-    } catch (error) {
-      this.logger.error(`changePass error: ${error.message}`, error.stack)
-      throw error
-    }
-
-  }
 
   async resetPassword(recover: RecoverInterface) {
 
@@ -728,8 +766,12 @@ export class UserService {
         user_email,
         user_password,
         psychologist_id,
-        user_date_of_birth
+        user_date_of_birth,
+        user_cpf,
+        user_rg
       } = createPatientDto;
+
+
 
       if (!user_name || user_name.trim() === '') {
         throw new BadRequestException(`O nome não pode estar vazio`);
@@ -796,9 +838,13 @@ export class UserService {
       patient.setTwoFactorSecret();
       patient.user_enrollment = Utils.getInstance().getEnrollmentCode()
       patient.user_2fa_active = false
+      patient.user_cpf = user_cpf
+      patient.user_rg = user_rg
 
       const dateParts = user_date_of_birth.split("/");
       patient.user_date_of_birth = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
+
+
 
       const patientSaved = await this.userRepository.save(patient);
 
@@ -830,7 +876,7 @@ export class UserService {
 
       console.log('Patient: ', patient);
 
-      const psychologistDto = plainToClass(UserResponseDto, patient.psychologist, {
+      const psychologistDto = plainToClass(PsychologistResponseDto, patient.psychologist, {
         excludeExtraneousValues: true
       });
 
@@ -862,7 +908,7 @@ export class UserService {
         throw new NotFoundException(`Psicólogo com ID ${psychologist_id} não encontrado`);
       }
 
-      const patientsDto = psychologist.patients.map(patient => plainToClass(UserResponseDto, patient, {
+      const patientsDto = psychologist.patients.map(patient => plainToClass(PatientResponseDto, patient, {
         excludeExtraneousValues: true
       }));
 

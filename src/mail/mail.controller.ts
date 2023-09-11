@@ -1,5 +1,5 @@
 import { Controller, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiExcludeEndpoint } from '@nestjs/swagger';
 import AccessProfile from 'src/auth/enums/permission.type';
 import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
 import { CodeRecoverInterface } from 'src/common/interfaces/email.interface';
@@ -12,6 +12,7 @@ export class MailController {
   constructor(private readonly mailService: MailService) { }
 
   @Post()
+  @ApiExcludeEndpoint()
   @UseGuards(PermissionGuard(AccessProfile.ADMIN))
   sendMail(
     @Query('name') name: string,

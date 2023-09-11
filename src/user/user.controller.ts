@@ -1,7 +1,6 @@
-import { Body, Controller, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { totp } from 'otplib';
 import AccessProfile from 'src/auth/enums/permission.type';
 import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
 import { PublicRoute } from 'src/common/decorators/public_route.decorator';
@@ -22,12 +21,22 @@ import { UserService } from './user.service';
 @ApiTags('User')
 @ApiBearerAuth()
 
+// @ApiExcludeEndpoint()
+
 export class UserController {
   constructor(private readonly userService: UserService) { }
 
   @Post()
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
-  // @PublicRoute()
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @ApiOperation({
+    description: `# Esta rota adiciona um novo usuário.
+    Tipo: Autenticada. 
+    Acesso: [Administrador, Psicólogo, Atendente]` })
+
+  @ApiBody({
+    description: '## Schema padrão para criar usuário.',
+    type: CreateUserDto
+  })
   async create(
     @Body() createUserDto: CreateUserDto
   ): Promise<UserResponseDto> {
@@ -35,15 +44,23 @@ export class UserController {
   }
 
 
-
   @Get('/profile')
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @ApiOperation({
+    description: `# Esta rota busca todos perfis.
+    Tipo: Autenticada. 
+    Acesso: [Administrador, Psicólogo, Atendente]` })
   async findAllProfile(): Promise<ProfileEntity[]> {
     return this.userService.findAllProfile()
   }
 
   @Get()
-  @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @ApiOperation({
+    description: `# Esta rota busca todos usuários.
+    Tipo: Autenticada. 
+    Acesso: [Administrador, Psicólogo, Atendente]` })
+  @ApiQuery({ name: 'user_name', required: false, description: '### Este é um filtro opcional!' })
   async findAll(
     @Query() query
   ): Promise<Pagination<UserResponseDto>> {
@@ -57,20 +74,15 @@ export class UserController {
   }
 
 
-  @Patch('/change-password/:id/:currentPass/:firstPass/:secondPass')
-  @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
-  async changePassword(
-    @Param('id') id: string,
-    @Param('currentPass') currentPass: string,
-    @Param('firstPass') firstPass: string,
-    @Param('secondPass') secondPass: string
-  ) {
-    return this.userService.changePassword(id, currentPass, firstPass, secondPass)
-  }
-
-
   @Post('/resetPass')
   @PublicRoute()
+  @ApiOperation({
+    description: `# Esta rota redefine a senha do usuário.
+    Tipo: Publica. 
+    Acesso: [Livre]` })
+  @ApiQuery({ name: 'code', description: '### Código especial, com duração de cinco minutos obtido através do email.' })
+  @ApiQuery({ name: 'password', description: '### Nova senha. ' })
+  @ApiQuery({ name: 'email', description: '### E-mail do usuário que está resetando a senha ' })
   async resetPassword(
     @Query('code') code: number,
     @Query('password') password: string,
@@ -89,15 +101,28 @@ export class UserController {
 
   @Post('/recover-code')
   @PublicRoute()
+  @ApiOperation({
+    description: `# Esta rota dispara o email que contém o código para redefinição de senha.
+    Tipo: Publica. 
+    Acesso: [Livre]` })
+  @ApiQuery({ name: 'email', description: '### E-mail do usuário que está resetando a senha. ' })
   async recoverCode(
     @Query('email') email: string
   ) {
+
+    console.log('Email controller: ', email);
+
     return this.userService.recoverCode(email)
   }
 
 
   @Get('/userEmail')
-  @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @ApiOperation({
+    description: `# Esta rota busca um usuário pelo email.
+    Tipo: Autenticada. 
+    Acesso: [Administrador, Psicólogo, Atendente]` })
+  @ApiParam({ name: 'email', description: '### E-mail de cadastro do usuário. ' })
   async getUserByEmail(
     @Query('email') email: string
   ) {
@@ -105,18 +130,14 @@ export class UserController {
     return this.userService.findUserByEmail(email)
   }
 
-  @Post('test-2fa-otplib')
-  @PublicRoute()
-  test2FAOtplib(@Body() body: { secret: string, token: string }) {
-    totp.options = { step: 30 };
-    const isValid = totp.verify({ token: body.token, secret: body.secret });
-    return { isValid };
-  }
-
-
 
   @Get('/allPsychologists')
-  @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
+  // @UseGuards(PermissionGuard(AccessProfile.ALL))
+  @PublicRoute()
+  @ApiOperation({
+    description: `# Esta rota obtém a lista de todos psicólogos.
+    Tipo: Publica. 
+    Acesso: [Livre]` })
   async getAllPsychologists() {
 
     return this.userService.getAllPsychologists()
@@ -130,9 +151,27 @@ export class UserController {
 
 
 
+  @Delete(':id')
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
+  @ApiOperation({
+    description: `# Esta rota deleta um usuário.
+    Tipo: Autenticada. 
+    Acesso: [Administrador]` })
+  @ApiParam({ name: 'id', description: '### Id do usuário. ' })
+  async delete(
+    @Param('id') id: string
+  ) {
+    return this.userService.deleteUser(id)
+  }
+
   @Get('/qrcode-2fa/:id')
-  // @PublicRoute()
-  @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
+  @UseGuards(PermissionGuard(AccessProfile.ALL))
+  @ApiOperation({
+    description: `# Esta rota obtém os dados para gerar o qr-code.
+    Descrição: Este qr-code é usado para configurar o aplicativo que gera token.
+    Tipo: Autenticada. 
+    Acesso: [Todos]` })
+  @ApiParam({ name: 'id', description: '### Id do usuário. ' })
   async getQrCode(
     @Param('id') id: string
   ) {
@@ -141,8 +180,16 @@ export class UserController {
 
 
   @Put('status-code/:id')
-  @UseGuards(PermissionGuard(AccessProfile.USER_AND_ADMIN))
-  // @PublicRoute()
+  @UseGuards(PermissionGuard(AccessProfile.ALL))
+  @ApiOperation({
+    description: `# Esta rota habilita e desabilita a autenticação de dois fatores.
+    Tipo: Autenticada. 
+    Acesso: [Todos]` })
+  @ApiParam({ name: 'id', description: '### Id do usuário. ' })
+  @ApiBody({
+    description: '### No corpo de requisição, passe a variável status que define se habilita ou desabilita a autenticação de dois fatores.',
+    type: Qrcode2fa
+  })
   async generate2fa(
     @Param('id') id: string,
     @Body() qrcode2fs: Qrcode2fa
@@ -151,8 +198,14 @@ export class UserController {
     return this.userService.generate2fa(id, qrcode2fs)
   }
 
+
   @Get(':id')
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @ApiOperation({
+    description: `# Esta rota busca um usuário pelo Id.
+    Tipo: Autenticada. 
+    Acesso: [Administrador, Psicólogo, Atendente]` })
+  @ApiParam({ name: 'id', description: 'Id do usuário. ' })
   async findOne(
     @Param('id') id: string
   ): Promise<UserResponseDto> {
@@ -160,7 +213,16 @@ export class UserController {
   }
 
   @Put(':id')
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @ApiOperation({
+    description: `# Esta rota atualiza um usuário pelo Id.
+    Tipo: Autenticada. 
+    Acesso: [Administrador, Psicólogo, Atendente]` })
+  @ApiParam({ name: 'id', description: 'Id do usuário. ' })
+  @ApiBody({
+    description: '## Schema padrão para atualizar um usuário. ',
+    type: UpdateUserDto
+  })
   async update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto
@@ -169,7 +231,12 @@ export class UserController {
   }
 
   @Patch('/status/:id')
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST))
+  @ApiOperation({
+    description: `# Esta rota habilita e desabilita um usuário pelo Id.
+    Tipo: Autenticada. 
+    Acesso: [Administrador, Psicólogo]` })
+  @ApiParam({ name: 'id', description: '### Id do usuário. ' })
   async changeStatus(
     @Param('id') id: string
   ): Promise<UserEntity> {
@@ -177,8 +244,15 @@ export class UserController {
   }
 
   @Post('/patient')
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
-  // @PublicRoute()
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @ApiOperation({
+    description: `# Esta rota cadastra um paciente.
+    Tipo: Autenticada. 
+    Acesso: [Administrador, Psicólogo, Atendente]` })
+  @ApiBody({
+    description: '## Schema padrão para cadastrar um paciente. ',
+    type: CreatePatientDto
+  })
   async createPatient(
     @Body() createPatientDto: CreatePatientDto
   ): Promise<UserResponseDto> {
@@ -187,7 +261,12 @@ export class UserController {
 
 
   @Get('/patient/:id')
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @ApiOperation({
+    description: `# Esta rota busca um paciente por Id.
+    Tipo: Autenticada. 
+    Acesso: [Administrador, Psicólogo, Atendente]` })
+  @ApiParam({ name: 'id', description: '### Id do usuário. ' })
   async findPatient(
     @Param('id') id: string
   ): Promise<UserResponseDto> {
@@ -195,7 +274,12 @@ export class UserController {
   }
 
   @Get('/psychologist/:id')
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST))
+  @ApiOperation({
+    description: `# Esta rota busca os dados completos de um psicólogo por Id.
+    Tipo: Autenticada. 
+    Acesso: [Administrador, Psicólogo]` })
+  @ApiParam({ name: 'id', description: '### Id do usuário. ' })
   async findPsychologist(
     @Param('id') id: string
   ): Promise<UserResponseDto> {

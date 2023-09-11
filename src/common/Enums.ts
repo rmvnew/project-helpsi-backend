@@ -38,7 +38,10 @@ export enum ObjectSize {
 
 export enum ProfileValue {
     ADMIN_VALUE = 1,
-    USER_VALUE = 2
+    PATIENT_VALUE = 2,
+    PSYCHOLOGIST_VALUE = 3,
+    ATTENDANT_VALUE = 4
+
 }
 
 export enum ProfileType {
@@ -59,3 +62,5 @@ export enum UserGenderType {
     NON_BINARY = 'NON_BINARY',
     OTHER = 'OTHER'
 }
+
+

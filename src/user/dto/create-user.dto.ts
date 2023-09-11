@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsOptional } from "class-validator";
 import { CreateAddressDto } from "src/address/dto/create-address.dto";
+import { Specialty } from "src/specialty/entities/specialty.entity";
 
 export class CreateUserDto {
     @ApiProperty()
@@ -21,6 +22,14 @@ export class CreateUserDto {
     @ApiProperty()
     user_date_of_birth: string
 
+    @ApiProperty()
+    user_crp?: string
+
     @IsOptional()
     address?: CreateAddressDto
+
+    @IsOptional()
+    specialtys?: Specialty[]
+
+
 }

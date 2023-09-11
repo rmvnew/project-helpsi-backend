@@ -1,5 +1,7 @@
 import { Expose } from "class-transformer";
-import { UserResponseDto } from "./user.response.dto";
+import { Address } from "src/address/entities/address.entity";
+import { Specialty } from "src/specialty/entities/specialty.entity";
+import { PatientResponseDto } from "./patient.response.dto";
 
 export class PsychologistResponseDto {
 
@@ -28,11 +30,20 @@ export class PsychologistResponseDto {
     user_profile_id: number;
 
     @Expose()
+    user_crp: string
+
+    @Expose()
+    address: Address
+
+    @Expose()
+    specialtys: Specialty[]
+
+    @Expose()
     create_at: Date;
 
     @Expose()
     update_at: Date;
 
     @Expose()
-    patients: UserResponseDto[];
+    patients: PatientResponseDto[];
 }

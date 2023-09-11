@@ -1,8 +1,10 @@
 import * as speakeasy from 'speakeasy';
 import { Address } from 'src/address/entities/address.entity';
 import { UserGenderType } from 'src/common/Enums';
-import { HistoricRecover } from "src/historic-recover/entities/historic-recover.entity";
+import { HistoricRecover } from "src/historic_recover/entities/historic-recover.entity";
+import { PatientDetails } from 'src/patient_details/entities/patient_detail.entity';
 import { ProfileEntity } from "src/profile/entities/profile.entity";
+import { Scheduling } from 'src/scheduling/entities/scheduling.entity';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { Column, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
@@ -27,6 +29,15 @@ export class UserEntity {
     @Column()
     user_phone: string
 
+    @Column({ nullable: true })
+    user_rg?: string
+
+    @Column({ nullable: true })
+    user_cpf?: string
+
+    @Column({ nullable: true })
+    user_crp?: string
+
     @Column()
     user_enrollment?: string
 
@@ -44,6 +55,9 @@ export class UserEntity {
 
     @Column({ default: false })
     user_2fa_active: boolean
+
+    @Column({ default: false })
+    pre_registration: boolean
 
     @Column()
     user_password: string
@@ -73,7 +87,7 @@ export class UserEntity {
     @OneToMany(() => HistoricRecover, recover => recover.user)
     historics: HistoricRecover[];
 
-    @OneToOne(() => Address, { nullable: true, cascade: true })
+    @OneToOne(() => Address, { nullable: true, cascade: true, eager: true })
     @JoinColumn({ name: 'address_id' })
     address?: Address
 
@@ -86,7 +100,7 @@ export class UserEntity {
 
     @ManyToMany(() => Specialty, specialty => specialty.users)
     @JoinTable({
-        name: 'user_specialty',
+        name: 'USER_SPECIALTY',
         joinColumn: {
             name: 'user_id',
             referencedColumnName: 'user_id'
@@ -97,6 +111,19 @@ export class UserEntity {
         }
     })
     specialtys?: Specialty[]
+
+    @OneToOne(() => PatientDetails, patientDetails => patientDetails.user)
+    @JoinColumn({
+        name: 'patient_details_id',
+        referencedColumnName: 'patient_details_id'
+    })
+    patientDetails: PatientDetails;
+
+    @OneToMany(() => Scheduling, appointment => appointment.patient)
+    appointments: Scheduling[];
+
+    @OneToMany(() => Scheduling, appointment => appointment.psychologist)
+    appointmentsAsPsychologist: Scheduling[];
 
     setTwoFactorSecret() {
         this.user_2fa_secret = speakeasy.generateSecret({ length: 20 }).base32

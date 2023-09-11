@@ -37,11 +37,18 @@ export class Bootstrap {
 
                 await this.profileService.create(profile)
 
+            } else {
+
+                if (profileHaveData.profile_name === 'ADMIN') {
+                    currentProfile = profileHaveData
+                }
             }
         }
 
 
         if (!userHaveData) {
+
+            console.log('Profile: ', currentProfile);
 
             const user: CreateUserDto = {
                 user_name: 'sysadmin',
