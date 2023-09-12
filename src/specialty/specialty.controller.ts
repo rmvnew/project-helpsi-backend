@@ -47,6 +47,14 @@ export class SpecialtyController {
     return this.specialtyService.findAll();
   }
 
+
+  @Get('/check-view')
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST))
+  @ApiExcludeEndpoint()
+  async checkView() {
+    return this.specialtyService.checkView();
+  }
+
   @Get(':id')
   @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST))
   @ApiOperation({

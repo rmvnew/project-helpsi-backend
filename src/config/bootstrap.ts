@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateProfileDto } from 'src/profile/dto/create-profile.dto';
 import { ProfileService } from 'src/profile/profile.service';
+import { SpecialtyService } from 'src/specialty/specialty.service';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { UserService } from 'src/user/user.service';
 
@@ -9,13 +10,18 @@ import { UserService } from 'src/user/user.service';
 export class Bootstrap {
     constructor(
         private readonly userService: UserService,
-        private readonly profileService: ProfileService
+        private readonly profileService: ProfileService,
+        private readonly specialtyService: SpecialtyService
+
+
     ) { }
 
     async onApplicationBootstrap() {
 
 
         const userHaveData = await this.userService.haveAdmin('sysadmin')
+
+        const test = await this.specialtyService.checkView()
 
         let currentProfile = null
 

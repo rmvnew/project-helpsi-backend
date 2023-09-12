@@ -11,7 +11,8 @@ export class SpecialtyService {
 
   constructor(
     @InjectRepository(Specialty)
-    private readonly specialtyRepository: Repository<Specialty>
+    private readonly specialtyRepository: Repository<Specialty>,
+
   ) { }
 
 
@@ -100,4 +101,38 @@ export class SpecialtyService {
     this.specialtyRepository.delete(id)
 
   }
+
+
+  async checkView() {
+
+
+    const exists = await this.specialtyRepository.query(`
+    
+      select * from vw_psychologists_spacialts
+
+    `).catch(error => {
+      console.log('error: ', error);
+    })
+
+
+    if (!exists) {
+      await this.specialtyRepository.query(`
+      create view vw_psychologists_spacialts as
+      select  
+      u.user_id ,
+      u.user_name,
+      s.specialty_id ,
+      s.specialty_name 
+      from USER_SPECIALTY us 
+      left join USER u on us.user_id = u.user_id 
+      left JOIN SPECIALTY s on us.specialty_id = s.specialty_id 
+      `)
+    }
+
+
+
+
+  }
+
+
 }
