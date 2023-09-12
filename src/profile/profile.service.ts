@@ -60,5 +60,13 @@ export class ProfileService {
     return this.findById(id)
   }
 
+  async getPatient() {
+    return this.profileRepository.findOne({
+      where: {
+        profile_name: 'PATIENT'
+      }
+    })
+  }
+
 
 }

@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/comm
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import AccessProfile from 'src/auth/enums/permission.type';
 import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
+import { PublicRoute } from 'src/common/decorators/public_route.decorator';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ProfileService } from './profile.service';
@@ -27,6 +28,12 @@ export class ProfileController {
   @UseGuards(PermissionGuard(AccessProfile.ADMIN))
   async findAll() {
     return this.profileService.findAll();
+  }
+
+  @Get('/get-patient')
+  @PublicRoute()
+  async getPatient() {
+    return this.profileService.getPatient();
   }
 
   @Get(':id')

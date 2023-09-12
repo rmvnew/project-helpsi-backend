@@ -287,4 +287,23 @@ export class UserController {
   }
 
 
+
+
+  @Post('/patient/public')
+  @PublicRoute()
+  @ApiOperation({
+    description: `# Esta rota cadastra um paciente.
+    Tipo: Pública. 
+    Acesso: [Livre]` })
+  @ApiBody({
+    description: '## Schema padrão para cadastrar um paciente. ',
+    type: CreatePatientDto
+  })
+  async createPublicPatient(
+    @Body() createPatientDto: CreatePatientDto
+  ): Promise<UserResponseDto> {
+    return this.userService.createPatient(createPatientDto)
+  }
+
+
 }
