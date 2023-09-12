@@ -129,9 +129,24 @@ export class SpecialtyService {
       `)
     }
 
+  }
 
 
 
+  async getAvailableSpacialties() {
+
+    return this.specialtyRepository.query(`
+      select DISTINCT  vps.specialty_name  from vw_psychologists_spacialts vps 
+    `)
+
+  }
+
+
+  async getPsychologistBySpecialty(specialty: string) {
+    return this.specialtyRepository.query(`
+      select vps.user_name from vw_psychologists_spacialts vps
+      WHERE vps.specialty_name = '${specialty}' 
+    `)
   }
 
 

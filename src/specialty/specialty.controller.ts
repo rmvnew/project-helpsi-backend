@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiExcludeEndpoint, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiExcludeEndpoint, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import AccessProfile from 'src/auth/enums/permission.type';
 import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
+import { PublicRoute } from 'src/common/decorators/public_route.decorator';
 import { CreateSpecialtyDto } from './dto/create-specialty.dto';
 import { UpdateSpecialtyDto } from './dto/update-specialty.dto';
 import { SpecialtyService } from './specialty.service';
@@ -53,6 +54,29 @@ export class SpecialtyController {
   @ApiExcludeEndpoint()
   async checkView() {
     return this.specialtyService.checkView();
+  }
+
+  @Get('/availables')
+  @PublicRoute()
+  @ApiOperation({
+    description: `# Esta rota busca todas as especializações disponiveis.
+    Tipo: Livre. 
+    Acesso: [Todos]` })
+  async availables() {
+    return this.specialtyService.getAvailableSpacialties();
+  }
+
+  @Get('/psychologist-by-specialty')
+  @PublicRoute()
+  @ApiOperation({
+    description: `# Esta rota busca todos psicólogos de acordo com a especialização.
+    Tipo: Livre. 
+    Acesso: [Todos]` })
+  @ApiQuery({ name: 'specialty', required: true, description: '### Nome da especialização do Psicólogo!' })
+  async psychologistBySpecialty(
+    @Query('specialty') specialty: string
+  ) {
+    return this.specialtyService.getPsychologistBySpecialty(specialty)
   }
 
   @Get(':id')
