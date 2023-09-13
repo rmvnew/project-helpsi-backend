@@ -5,6 +5,7 @@ https://docs.nestjs.com/controllers#controllers
 import { Body, Controller, HttpCode, Post, Request, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiExcludeEndpoint, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PublicRoute } from 'src/common/decorators/public_route.decorator';
+import { googleDto } from './dto/google.dto';
 import { LoginDTO } from './dto/login.dto';
 import { AuthService } from './shared/auth.service';
 import { GoogleAuthService } from './shared/google.auth.service';
@@ -69,8 +70,16 @@ export class AuthController {
     @Post('google-login')
     @ApiBearerAuth()
     @PublicRoute()
-    async googleLogin(@Body('idToken') idToken: string) {
-        return await this.googleService.validateToken(idToken)
+    @ApiOperation({
+        description: `# Esta rota cadastra um paciente.
+        Tipo: Pública. 
+        Acesso: [Livre]` })
+    @ApiBody({
+        description: '## Schema padrão para cadastrar um paciente. ',
+        type: googleDto
+    })
+    async googleLogin(@Body() token: googleDto) {
+        return await this.googleService.validateToken(token)
     }
 
 }

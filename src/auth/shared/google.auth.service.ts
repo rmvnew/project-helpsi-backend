@@ -3,9 +3,9 @@ https://docs.nestjs.com/providers#services
 */
 
 import { Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { OAuth2Client } from 'google-auth-library';
 import { UserService } from 'src/user/user.service';
+import { googleDto } from '../dto/google.dto';
 import { AuthService } from './auth.service';
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID
@@ -18,14 +18,13 @@ export class GoogleAuthService {
 
     constructor(
         private readonly userService: UserService,
-        private readonly jwtService: JwtService,
         private readonly authService: AuthService
     ) { }
 
 
-    async validateToken(idToken: string): Promise<any> {
+    async validateToken(google: googleDto): Promise<any> {
 
-
+        const { idToken } = google
 
         const ticket = await this.client.verifyIdToken({
             idToken,
@@ -36,7 +35,7 @@ export class GoogleAuthService {
         if (!payload) {
             throw new Error('Token inválido');
         }
-        // console.log(payload);
+
 
         let user = await this.userService.findByEmail(payload.email);
 
@@ -55,11 +54,11 @@ export class GoogleAuthService {
 
         const newJwtToken = await this.authService.generateAndReturnTokens(user);
 
-        // console.log(newJwtToken);
+
 
         return {
             access_token: newJwtToken,
-            // outras informações que você deseja retornar
+            google_picture: user.google_picture
         };
     }
 

@@ -56,4 +56,7 @@ export class UserResponseDto {
 
     @Expose()
     update_at: Date
+
+    @Expose()
+    google_picture?: string
 }

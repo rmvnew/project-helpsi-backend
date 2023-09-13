@@ -948,7 +948,7 @@ export class UserService {
 
   async createPatientWithGoogle(userGoogle: CreateUserGoogleDto) {
 
-    const { google_id, user_email, user_name } = userGoogle
+    const { google_id, user_email, user_name, google_picture } = userGoogle
 
     const user = this.userRepository.create(userGoogle)
 
@@ -963,6 +963,7 @@ export class UserService {
     user.user_first_access = true
     user.setTwoFactorSecret()
     user.user_2fa_active = false
+    user.google_picture = google_picture
 
 
 
