@@ -7,8 +7,7 @@ export interface CodeRecoverInterface {
 }
 
 
-export interface SendPasswordInterface {
+export interface WellcomeInterface {
     name: string,
-    email: string,
-    password: string
+    email: string
 }

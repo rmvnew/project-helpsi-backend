@@ -8,7 +8,7 @@ import { AddressResponseDto } from 'src/address/dto/address.response.dto';
 import { Address } from 'src/address/entities/address.entity';
 import { SortingType, ValidType } from 'src/common/Enums';
 import { Utils } from 'src/common/Utils';
-import { CodeRecoverInterface } from 'src/common/interfaces/email.interface';
+import { CodeRecoverInterface, WellcomeInterface } from 'src/common/interfaces/email.interface';
 import { RecoverInterface } from 'src/common/interfaces/recover.interface';
 import { Validations } from 'src/common/validations';
 import { HistoricRecover } from 'src/historic_recover/entities/historic-recover.entity';
@@ -965,7 +965,12 @@ export class UserService {
     user.user_2fa_active = false
     user.google_picture = google_picture
 
+    const msg: WellcomeInterface = {
+      email: user_email,
+      name: user_name
+    }
 
+    this.mailservice.wallcomeMesage(msg)
 
 
     return this.userRepository.save(user)
