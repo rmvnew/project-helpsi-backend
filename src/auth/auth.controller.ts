@@ -71,11 +71,11 @@ export class AuthController {
     @ApiBearerAuth()
     @PublicRoute()
     @ApiOperation({
-        description: `# Esta rota cadastra um paciente.
+        description: `# Esta rota faz login com Google.
         Tipo: Pública. 
         Acesso: [Livre]` })
     @ApiBody({
-        description: '## Schema padrão para cadastrar um paciente. ',
+        description: '## Schema padrão para entrar com google. ',
         type: googleDto
     })
     async googleLogin(@Body() token: googleDto) {
