@@ -127,4 +127,38 @@ export class Utils {
     }
 
 
+    generatePassword(): string {
+        const uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const numbers = '0123456789';
+        const specialChars = '!@#$%^&*()_-+=<>?';
+
+        let password = '';
+
+        // Gerar duas letras maiúsculas
+        for (let i = 0; i < 2; i++) {
+            const randomIndex = Math.floor(Math.random() * uppercaseChars.length);
+            password += uppercaseChars[randomIndex];
+        }
+
+        // Gerar dois números
+        for (let i = 0; i < 2; i++) {
+            const randomIndex = Math.floor(Math.random() * numbers.length);
+            password += numbers[randomIndex];
+        }
+
+        // Gerar um caractere especial
+        const randomIndex = Math.floor(Math.random() * specialChars.length);
+        password += specialChars[randomIndex];
+
+        // Preencher até 8 caracteres, se necessário
+        const allChars = uppercaseChars + numbers + specialChars;
+        while (password.length < 8) {
+            const randomIndex = Math.floor(Math.random() * allChars.length);
+            password += allChars[randomIndex];
+        }
+
+        return password;
+    }
+
+
 }

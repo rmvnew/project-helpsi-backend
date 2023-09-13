@@ -75,7 +75,7 @@ export class AuthService {
         }
     }
 
-    private async generateAndReturnTokens(userSaved: UserEntity) {
+    async generateAndReturnTokens(userSaved: UserEntity) {
         const { access_token, refresh_token } = await this.getTokens(userSaved.user_id, userSaved.user_name, userSaved.user_profile_id);
 
         const hashed_refresh_token = await hash(refresh_token);

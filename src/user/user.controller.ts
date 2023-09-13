@@ -117,11 +117,11 @@ export class UserController {
 
 
   @Get('/userEmail')
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @UseGuards(PermissionGuard(AccessProfile.ALL))
   @ApiOperation({
     description: `# Esta rota busca um usuário pelo email.
     Tipo: Autenticada. 
-    Acesso: [Administrador, Psicólogo, Atendente]` })
+    Acesso: [Todos]` })
   @ApiParam({ name: 'email', description: '### E-mail de cadastro do usuário. ' })
   async getUserByEmail(
     @Query('email') email: string

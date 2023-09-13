@@ -7,6 +7,7 @@ import { ApiBearerAuth, ApiBody, ApiExcludeEndpoint, ApiOperation, ApiTags } fro
 import { PublicRoute } from 'src/common/decorators/public_route.decorator';
 import { LoginDTO } from './dto/login.dto';
 import { AuthService } from './shared/auth.service';
+import { GoogleAuthService } from './shared/google.auth.service';
 import { JwtAuthGuard } from './shared/guards/jwt-auth.guard';
 import { JwtRefreshAuthGuard } from './shared/guards/jwt.refresh-auth.guard';
 import { LocalAuthGuard } from './shared/guards/local-auth.guard';
@@ -18,6 +19,7 @@ export class AuthController {
 
     constructor(
         private authService: AuthService,
+        private googleService: GoogleAuthService
     ) { }
 
 
@@ -64,5 +66,11 @@ export class AuthController {
     }
 
 
+    @Post('google-login')
+    @ApiBearerAuth()
+    @PublicRoute()
+    async googleLogin(@Body('idToken') idToken: string) {
+        return await this.googleService.validateToken(idToken)
+    }
 
 }

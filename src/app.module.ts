@@ -34,6 +34,7 @@ import { UserModule } from './user/user.module';
   ],
   controllers: [],
   providers: [
+
     Bootstrap,
     {
       provide: APP_GUARD,

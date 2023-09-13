@@ -26,8 +26,14 @@ export class UserEntity {
     @Column({ type: 'enum', enum: UserGenderType, nullable: true })
     user_genre?: UserGenderType
 
-    @Column()
-    user_phone: string
+    @Column({ nullable: true })
+    google_id?: string
+
+    @Column({ nullable: true })
+    google_picture?: string
+
+    @Column({ nullable: true })
+    user_phone?: string
 
     @Column({ nullable: true })
     user_rg?: string
@@ -38,7 +44,7 @@ export class UserEntity {
     @Column({ nullable: true })
     user_crp?: string
 
-    @Column()
+    @Column({ nullable: true })
     user_enrollment?: string
 
     @Column({ nullable: true })
@@ -59,8 +65,8 @@ export class UserEntity {
     @Column({ default: false })
     pre_registration: boolean
 
-    @Column()
-    user_password: string
+    @Column({ nullable: true })
+    user_password?: string
 
     @Column()
     user_profile_id: number

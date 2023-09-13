@@ -11,19 +11,20 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { UserModule } from 'src/user/user.module';
 import { AuthService } from './shared/auth.service';
+import { GoogleAuthService } from './shared/google.auth.service';
 import { JwtRefreshStrategy } from './shared/strategies/jwt-refresh.strategy';
 import { JwtStrategy } from './shared/strategies/jwt.strategy';
 import { LocalStrategy } from './shared/strategies/local.strategy';
 
 @Module({
     imports: [
+        ConfigModule,
         UserModule,
         PassportModule,
         JwtModule.register({
-            secret: process.env.JWT_SECRET,
+            secret: process.env.JWT_SECRET as string,
             signOptions: { expiresIn: process.env.JWT_EXPIRES_IN },
         }),
-        ConfigModule,
         TypeOrmModule.forFeature([UserEntity])
     ],
     controllers: [
@@ -33,7 +34,8 @@ import { LocalStrategy } from './shared/strategies/local.strategy';
         AuthService,
         LocalStrategy,
         JwtStrategy,
-        JwtRefreshStrategy
+        JwtRefreshStrategy,
+        GoogleAuthService
     ],
 })
 export class AuthModule { }
