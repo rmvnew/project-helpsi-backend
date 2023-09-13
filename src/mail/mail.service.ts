@@ -69,6 +69,8 @@ export class MailService {
                   <p>Sua senha de acesso ai sistema Helpsi chegou!!</p>
                   <h3 style="background-color: #e6f7ff; padding: 10px; border: 1px solid #b3e0ff; text-align: center; color: #333;">${sendPass.password}</h3>
                   <br>
+                  <p>Agora seu acesso pode ser utilizando seu email e a senha, ou entrando com google!</p>
+                  <br>
                   <p>Atenciosamente,</p>
                   <p>Equipe do HelPsi</p>
               </div>

@@ -15,6 +15,7 @@ import { HistoricRecover } from 'src/historic_recover/entities/historic-recover.
 import { HistoricRecoverService } from 'src/historic_recover/historic-recover.service';
 import { MailService } from 'src/mail/mail.service';
 import { ProfileEntity } from 'src/profile/entities/profile.entity';
+import { ProfileService } from 'src/profile/profile.service';
 import { SpecialtyResponseDto } from 'src/specialty/dto/specialty.response.dto';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { Repository } from 'typeorm';
@@ -22,6 +23,7 @@ import { CreateHistoricRecoverDto } from '../historic_recover/dto/create-histori
 import { FilterUser } from './dto/Filter.user';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserGoogleDto } from './dto/create-user.google.dto';
 import { ListPsychologistResponseDto } from './dto/list.psychologist.response.dto';
 import { PatientResponseDto } from './dto/patient.response.dto';
 import { PsychologistBasicResponseDto } from './dto/psychologist.basic.response.dto';
@@ -42,6 +44,7 @@ export class UserService {
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(ProfileEntity)
     private readonly profileRepository: Repository<ProfileEntity>,
+    private readonly profileService: ProfileService,
     private readonly mailservice: MailService,
     private readonly historicRecoverService: HistoricRecoverService,
     @InjectRepository(HistoricRecover)
@@ -295,7 +298,7 @@ export class UserService {
 
     try {
 
-      const user = this.userRepository.createQueryBuilder('user')
+      const user = await this.userRepository.createQueryBuilder('user')
         .leftJoinAndSelect('user.profile', 'profile')
         .where('user.user_email = :user_email', { user_email: email })
         .getOne()
@@ -942,6 +945,32 @@ export class UserService {
 
   }
 
+
+  async createPatientWithGoogle(userGoogle: CreateUserGoogleDto) {
+
+    const { google_id, user_email, user_name } = userGoogle
+
+    const user = this.userRepository.create(userGoogle)
+
+    const currentPassword = Utils.getInstance().generatePassword()
+    const currentProfile = await this.profileService.getPatient()
+
+    user.user_name = user_name.toUpperCase()
+    user.user_email = user_email
+    user.google_id = google_id
+    user.profile = currentProfile
+    user.user_status = true
+    user.user_first_access = true
+    user.setTwoFactorSecret()
+    user.user_2fa_active = false
+
+
+
+
+    return this.userRepository.save(user)
+
+
+  }
 
 
 

@@ -10,11 +10,11 @@ export class CreateUserDto {
     @ApiProperty()
     user_email: string
 
-    @ApiProperty()
-    user_phone: string
+    @IsOptional()
+    user_phone?: string
 
     @ApiProperty()
-    user_password: string
+    user_password?: string
 
     @ApiProperty()
     user_profile_id: number

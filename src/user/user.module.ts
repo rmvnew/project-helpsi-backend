@@ -6,6 +6,7 @@ import { HistoricRecover } from 'src/historic_recover/entities/historic-recover.
 import { HistoricRecoverModule } from 'src/historic_recover/historic-recover.module';
 import { EmailModule } from 'src/mail/mail.module';
 import { ProfileEntity } from 'src/profile/entities/profile.entity';
+import { ProfileModule } from 'src/profile/profile.module';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { SpecialtyModule } from 'src/specialty/specialty.module';
 import { UserEntity } from './entities/user.entity';
@@ -24,7 +25,8 @@ import { UserService } from './user.service';
     EmailModule,
     HistoricRecoverModule,
     AddressModule,
-    SpecialtyModule
+    SpecialtyModule,
+    ProfileModule
 
   ],
   controllers: [UserController],
