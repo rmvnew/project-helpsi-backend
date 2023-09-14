@@ -146,6 +146,10 @@ export class UserController {
 
   @Get('me')
   @UseGuards(PermissionGuard(AccessProfile.ALL))
+  @ApiOperation({
+    description: `# Esta rota obtém o usuário logado.
+    Tipo: Autenticada. 
+    Acesso: [Todos]` })
   getLoggedUser(@Request() req) {
     return this.userService.getCurrentUser(req.user.sub)
   }
