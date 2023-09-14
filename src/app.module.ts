@@ -15,6 +15,7 @@ import { ProfileModule } from './profile/profile.module';
 import { SchedulingModule } from './scheduling/scheduling.module';
 import { SpecialtyModule } from './specialty/specialty.module';
 import { UserModule } from './user/user.module';
+import { UnavailableTimesModule } from './unavailable-times/unavailable-times.module';
 
 @Module({
   imports: [
@@ -30,7 +31,8 @@ import { UserModule } from './user/user.module';
     SpecialtyModule,
     PatientDetailsModule,
     DiaryEntryModule,
-    SchedulingModule
+    SchedulingModule,
+    UnavailableTimesModule
   ],
   controllers: [],
   providers: [

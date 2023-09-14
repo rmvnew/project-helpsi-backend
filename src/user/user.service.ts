@@ -330,10 +330,8 @@ export class UserService {
         .where('user.user_id = :user_id', { user_id: id })
         .getOne()
 
-
       const currentAddress = user.address
       const currentPsychologist = user.psychologist
-
 
       user.address = this.transformAddress(currentAddress)
       user['basicPsychologist'] = this.transformPsychologist(currentPsychologist)
@@ -341,10 +339,6 @@ export class UserService {
       const userDto: UserResponseLoginDto = plainToClass(UserResponseLoginDto, user, {
         excludeExtraneousValues: true
       });
-
-
-      console.log(userDto);
-
 
       return userDto
 

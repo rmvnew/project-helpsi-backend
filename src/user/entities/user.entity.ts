@@ -6,6 +6,7 @@ import { PatientDetails } from 'src/patient_details/entities/patient_detail.enti
 import { ProfileEntity } from "src/profile/entities/profile.entity";
 import { Scheduling } from 'src/scheduling/entities/scheduling.entity';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
+import { UnavailableTimes } from 'src/unavailable-times/entities/unavailable-time.entity';
 import { Column, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('USER')
@@ -130,6 +131,9 @@ export class UserEntity {
 
     @OneToMany(() => Scheduling, appointment => appointment.psychologist)
     appointmentsAsPsychologist: Scheduling[];
+
+    @OneToMany(() => UnavailableTimes, times => times.psychologist)
+    unavailableTimes: UnavailableTimes[];
 
     setTwoFactorSecret() {
         this.user_2fa_secret = speakeasy.generateSecret({ length: 20 }).base32

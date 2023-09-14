@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } fro
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import AccessProfile from 'src/auth/enums/permission.type';
 import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
-import { getDiaryEntry } from 'src/common/routes.path';
+import { getDiaryEntryPath } from 'src/common/routes.path';
 import { DiaryEntryService } from './diary_entry.service';
 import { CreateDiaryEntryDto } from './dto/create-diary_entry.dto';
 import { DiaryFilter } from './dto/diary.filter';
@@ -40,7 +40,7 @@ export class DiaryEntryController {
     @Query('filter') filter: DiaryFilter
   ) {
 
-    filter.route = getDiaryEntry()
+    filter.route = getDiaryEntryPath()
 
     return this.diaryEntryService.findAll(filter);
   }
