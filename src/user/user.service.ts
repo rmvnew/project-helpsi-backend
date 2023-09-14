@@ -320,6 +320,39 @@ export class UserService {
     }
   }
 
+  async getCurrentUser(id: string): Promise<UserResponseLoginDto> {
+    try {
+
+      const user = await this.userRepository.createQueryBuilder('user')
+        .leftJoinAndSelect('user.profile', 'profile')
+        .leftJoinAndSelect('user.address', 'address')
+        .leftJoinAndSelect('user.psychologist', 'psychologist')
+        .where('user.user_id = :user_id', { user_id: id })
+        .getOne()
+
+
+      const currentAddress = user.address
+      const currentPsychologist = user.psychologist
+
+
+      user.address = this.transformAddress(currentAddress)
+      user['basicPsychologist'] = this.transformPsychologist(currentPsychologist)
+
+      const userDto: UserResponseLoginDto = plainToClass(UserResponseLoginDto, user, {
+        excludeExtraneousValues: true
+      });
+
+
+      console.log(userDto);
+
+
+      return userDto
+
+    } catch (error) {
+      this.logger.error(`findById error: ${error.message}`, error.stack)
+      throw error
+    }
+  }
 
   async findById(id: string): Promise<UserResponseDto> {
 
@@ -367,6 +400,9 @@ export class UserService {
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
 
+
+
+
     try {
 
 
@@ -376,7 +412,11 @@ export class UserService {
         user_email,
         user_profile_id: profile_id,
         user_date_of_birth,
-        user_phone
+        user_phone,
+        user_genre,
+        user_cpf,
+        user_rg,
+        psychologist_id
       } = updateUserDto
 
 
@@ -425,6 +465,7 @@ export class UserService {
       }
 
       if (profile_id) {
+
         const profile = await this.findProfileById(profile_id)
 
         if (!profile) {
@@ -433,9 +474,42 @@ export class UserService {
         user.profile = profile
       }
 
+      if (psychologist_id) {
+
+        const currentPsychologist = await this.userRepository.findOne({
+          where: {
+            user_id: psychologist_id
+          }
+        })
+
+        if (!currentPsychologist) {
+          throw new NotFoundException(`Psicólogo não encontrado!`)
+        }
+
+        user.psychologist = currentPsychologist
+
+      }
+
+      if (user_phone) {
+        user.user_phone = user_phone
+      }
+
+      if (user_genre) {
+        user.user_genre = user_genre
+      }
+
+      if (user_cpf) {
+        user.user_cpf = user_cpf
+      }
+      if (user_rg) {
+        user.user_rg = user_rg
+      }
+
+
       const [day, month, year] = user_date_of_birth.split("/")
 
       user.user_date_of_birth = new Date(+year, +month - 1, +day)
+
 
 
       await this.userRepository.save(user)

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import AccessProfile from 'src/auth/enums/permission.type';
@@ -141,6 +141,13 @@ export class UserController {
   async getAllPsychologists() {
 
     return this.userService.getAllPsychologists()
+  }
+
+
+  @Get('me')
+  @UseGuards(PermissionGuard(AccessProfile.ALL))
+  getLoggedUser(@Request() req) {
+    return this.userService.getCurrentUser(req.user.sub)
   }
 
   /**
