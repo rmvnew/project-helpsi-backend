@@ -16,7 +16,6 @@ export class ProfileController {
   constructor(private readonly profileService: ProfileService) { }
 
   @Post()
-  // @PublicRoute()
   @UseGuards(PermissionGuard(AccessProfile.ADMIN))
   async create(
     @Body() createProfileDto: CreateProfileDto
@@ -25,7 +24,7 @@ export class ProfileController {
   }
 
   @Get()
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
   async findAll() {
     return this.profileService.findAll();
   }
@@ -37,7 +36,7 @@ export class ProfileController {
   }
 
   @Get(':id')
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN))
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
   async findOne(@Param('id') id: string) {
     return this.profileService.findById(+id);
   }

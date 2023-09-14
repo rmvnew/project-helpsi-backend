@@ -31,6 +31,7 @@ import { PsychologistResponseDto } from './dto/psychologist.response.dto';
 import { Qrcode2fa } from './dto/qrcode.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user.response.dto';
+import { UserResponseLoginDto } from './dto/user.response.login.dto';
 import { UserEntity } from './entities/user.entity';
 
 @Injectable()
@@ -303,9 +304,13 @@ export class UserService {
         .where('user.user_email = :user_email', { user_email: email })
         .getOne()
 
-      const userDto: UserResponseDto = plainToClass(UserResponseDto, user, {
+
+
+      const userDto: UserResponseLoginDto = plainToClass(UserResponseLoginDto, user, {
         excludeExtraneousValues: true
       });
+
+      userDto.profile = user.profile
 
       return userDto
 
