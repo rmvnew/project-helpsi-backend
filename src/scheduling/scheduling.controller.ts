@@ -14,11 +14,11 @@ export class SchedulingController {
   constructor(private readonly schedulingService: SchedulingService) { }
 
   @Post()
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @UseGuards(PermissionGuard(AccessProfile.ALL))
   @ApiOperation({
     description: `# Esta rota cria novo agendamento.
     Tipo: Autenticada. 
-    Acesso: [Administrador, Psicólogo, Atendente]` })
+    Acesso: [Todos]` })
 
   @ApiBody({
     description: '## Schema padrão para criar um agendamento.',
@@ -29,10 +29,11 @@ export class SchedulingController {
   }
 
   @Get('availability')
+  @UseGuards(PermissionGuard(AccessProfile.ALL))
   @ApiOperation({
     description: `# Esta rota mostra horários disponíveis para esta data.
     Tipo: Autenticada. 
-    Acesso: [Administrador, Psicólogo, Atendente]` })
+    Acesso: [Todos]` })
   @ApiQuery({ name: 'date', description: '### informe a data para realizar esta busca (yyyy-mm-dd)' })
   async checkAvailability(@Query('date') date: string) {
     return await this.schedulingService.checkAvailability(date);
