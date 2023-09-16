@@ -1,11 +1,11 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import { Pagination, paginate } from 'nestjs-typeorm-paginate';
 import { SortingType } from 'src/common/Enums';
 import { PsychologistBasicResponseDto } from 'src/user/dto/psychologist.basic.response.dto';
 import { UserEntity } from 'src/user/entities/user.entity';
-import { Repository } from 'typeorm';
+import { Between, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { CreateUnavailableTimeDto } from './dto/create-unavailable-time.dto';
 import { UnavailableFilter } from './dto/unavailable.filter';
 import { UpdateUnavailableTimeDto } from './dto/update-unavailable-time.dto';
@@ -38,6 +38,24 @@ export class UnavailableTimesService {
     if (!psychologist) {
       throw new NotFoundException(`O psicólogo não foi encontrado!`)
     }
+
+    // Verifique se já existe um período indisponível que conflite com este
+    const conflictingTimes = await this.repository.find({
+      where: [
+        { psychologist: { user_id: unavailable_psychologist_id }, unavailable_start_time: Between(unavailable_start_time, unavailable_end_time) },
+        { psychologist: { user_id: unavailable_psychologist_id }, unavailable_end_time: Between(unavailable_start_time, unavailable_end_time) },
+        { psychologist: { user_id: unavailable_psychologist_id }, unavailable_start_time: LessThanOrEqual(unavailable_start_time), unavailable_end_time: MoreThanOrEqual(unavailable_end_time) },
+        { psychologist: { user_id: unavailable_psychologist_id }, unavailable_start_time: MoreThanOrEqual(unavailable_start_time), unavailable_end_time: LessThanOrEqual(unavailable_end_time) }
+      ]
+    });
+
+    if (conflictingTimes.length > 0) {
+      throw new ConflictException('Já existe um período indisponível que conflita com este.');
+    }
+
+
+
+
 
     const unavailable = this.repository.create(createUnavailableTimeDto)
     unavailable.unavailable_start_time = unavailable_start_time
@@ -158,4 +176,33 @@ export class UnavailableTimesService {
 
     this.repository.delete(isRegistered.unavailable_id)
   }
+
+
+
+  async getUnavailableDates(user_id: string): Promise<{ start: Date, end: Date }[]> {
+
+
+
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + 2);
+
+    const unavailableTimes = await this.repository.createQueryBuilder("unavailableTimes")
+      .innerJoin("unavailableTimes.psychologist", "psychologist")
+      .select(['unavailableTimes.unavailable_start_time', 'unavailableTimes.unavailable_end_time'])
+      .where("psychologist.user_id = :user_id", { user_id })
+      .andWhere("unavailableTimes.unavailable_start_time <= :endDate", { endDate })
+      .andWhere("unavailableTimes.unavailable_end_time >= :startDate", { startDate })
+      .getMany();
+
+    console.log(unavailableTimes);
+    return unavailableTimes.map(time => ({
+      start: time.unavailable_start_time,
+      end: time.unavailable_end_time,
+    }));
+  }
+
+
+
+
 }

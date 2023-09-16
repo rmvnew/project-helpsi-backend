@@ -32,6 +32,7 @@ export class UnavailableTimesController {
   }
 
   @Get()
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
   @ApiOperation({
     description: `# Esta rota busca todas datas indisponíveis para agendamento!.
     Tipo: Autenticada. 
@@ -43,7 +44,21 @@ export class UnavailableTimesController {
     return this.unavailableTimesService.findAll(filter);
   }
 
+  // @Get('/unavailablesDate')
+  // @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  // @ApiOperation({
+  //   description: `# Esta rota busca 
+  //   Tipo: Autenticada. 
+  //   Acesso: [Administrador, Psicólogo, Atendente]` })
+  // async getUnavailableDates(@Query() user_id: string) {
+
+
+
+  //   return this.unavailableTimesService.getUnavailableDates(user_id)
+  // }
+
   @Get(':id')
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
   @ApiOperation({
     description: `# Esta rota busca data indisponíveil por Id!.
     Tipo: Autenticada. 
@@ -54,6 +69,7 @@ export class UnavailableTimesController {
   }
 
   @Put(':id')
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
   @ApiOperation({
     description: `# Esta rota atualiza um evento para marcar datas indisponíveis por Id!.
     Tipo: Autenticada. 
@@ -64,6 +80,7 @@ export class UnavailableTimesController {
   }
 
   @Delete(':id')
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
   @ApiOperation({
     description: `# Esta rota deleta um evento para marcar datas indisponíveis por Id!.
     Tipo: Autenticada. 
@@ -72,4 +89,10 @@ export class UnavailableTimesController {
   async remove(@Param('id') id: string) {
     return this.unavailableTimesService.remove(id);
   }
+
+
+
+
+
+
 }
