@@ -110,7 +110,6 @@ export class UserController {
     @Query('email') email: string
   ) {
 
-    console.log('Email controller: ', email);
 
     return this.userService.recoverCode(email)
   }

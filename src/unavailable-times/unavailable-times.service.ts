@@ -67,6 +67,10 @@ export class UnavailableTimesService {
   }
 
   async findAll(filter: UnavailableFilter): Promise<Pagination<UnavailableTimes>> {
+
+
+
+
     try {
       const { sort, orderBy, end_time, start_time, psychologist_name } = filter;
 
@@ -179,28 +183,28 @@ export class UnavailableTimesService {
 
 
 
-  async getUnavailableDates(user_id: string): Promise<{ start: Date, end: Date }[]> {
+  // async getUnavailableDates(user_id: string): Promise<{ start: Date, end: Date }[]> {
 
 
 
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + 2);
+  //   const startDate = new Date();
+  //   const endDate = new Date();
+  //   endDate.setMonth(endDate.getMonth() + 2);
 
-    const unavailableTimes = await this.repository.createQueryBuilder("unavailableTimes")
-      .innerJoin("unavailableTimes.psychologist", "psychologist")
-      .select(['unavailableTimes.unavailable_start_time', 'unavailableTimes.unavailable_end_time'])
-      .where("psychologist.user_id = :user_id", { user_id })
-      .andWhere("unavailableTimes.unavailable_start_time <= :endDate", { endDate })
-      .andWhere("unavailableTimes.unavailable_end_time >= :startDate", { startDate })
-      .getMany();
+  //   const unavailableTimes = await this.repository.createQueryBuilder("unavailableTimes")
+  //     .innerJoin("unavailableTimes.psychologist", "psychologist")
+  //     .select(['unavailableTimes.unavailable_start_time', 'unavailableTimes.unavailable_end_time'])
+  //     .where("psychologist.user_id = :user_id", { user_id })
+  //     .andWhere("unavailableTimes.unavailable_start_time <= :endDate", { endDate })
+  //     .andWhere("unavailableTimes.unavailable_end_time >= :startDate", { startDate })
+  //     .getMany();
 
-    console.log(unavailableTimes);
-    return unavailableTimes.map(time => ({
-      start: time.unavailable_start_time,
-      end: time.unavailable_end_time,
-    }));
-  }
+  //   console.log(unavailableTimes);
+  //   return unavailableTimes.map(time => ({
+  //     start: time.unavailable_start_time,
+  //     end: time.unavailable_end_time,
+  //   }));
+  // }
 
 
 
