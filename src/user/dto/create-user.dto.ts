@@ -22,7 +22,7 @@ export class CreateUserDto {
     @ApiProperty()
     user_date_of_birth: string
 
-    @ApiProperty()
+    @IsOptional()
     user_crp?: string
 
     @IsOptional()

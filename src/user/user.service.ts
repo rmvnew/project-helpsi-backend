@@ -64,6 +64,7 @@ export class UserService {
 
 
     try {
+
       const {
         user_name,
         user_profile_id: profile_id,
@@ -144,7 +145,7 @@ export class UserService {
       return userDto
 
     } catch (error) {
-      this.logger.error(`createUser error: ${error.message}`, error.stack);
+      this.logger.warn(`createUser error: ${error.message}`, error.stack);
       throw error
     }
 
@@ -890,14 +891,19 @@ export class UserService {
 
       patient.user_password = await Utils.getInstance().encryptPassword(user_password);
 
-      const psychologist = await this.userRepository.findOne({
-        where: {
-          user_id: psychologist_id
-        }
-      });
 
-      if (!psychologist) {
-        throw new NotFoundException(`Psicólogo não encontrado`);
+      if (psychologist_id) {
+        const psychologist = await this.userRepository.findOne({
+          where: {
+            user_id: psychologist_id
+          }
+        });
+
+        if (!psychologist) {
+          throw new NotFoundException(`Psicólogo não encontrado`);
+        }
+
+        patient.psychologist = psychologist ? psychologist : null;
       }
 
       const patientProfile = await this.profileRepository.findOne({
@@ -906,7 +912,6 @@ export class UserService {
         }
       })
 
-      patient.psychologist = psychologist;
 
       patient.user_status = true;
       patient.user_first_access = true;
