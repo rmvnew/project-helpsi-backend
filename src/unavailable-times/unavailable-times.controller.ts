@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import AccessProfile from 'src/auth/enums/permission.type';
 import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
@@ -44,18 +44,19 @@ export class UnavailableTimesController {
     return this.unavailableTimesService.findAll(filter);
   }
 
-  // @Get('/unavailablesDate')
-  // @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
-  // @ApiOperation({
-  //   description: `# Esta rota busca 
-  //   Tipo: Autenticada. 
-  //   Acesso: [Administrador, Psicólogo, Atendente]` })
-  // async getUnavailableDates(@Query() user_id: string) {
+  @Get('findAllDatesWithinRanges')
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  async findAllDatesWithinRanges(
+    @Query('psychologistId') psychologistId: string
+  ) {
+    const result = await this.unavailableTimesService.findAllDatesWithinRanges(psychologistId);
+    if (!result.length) {
+      throw new NotFoundException('Nenhum período indisponível encontrado.');
+    }
+    return result;
+  }
 
 
-
-  //   return this.unavailableTimesService.getUnavailableDates(user_id)
-  // }
 
   @Get(':id')
   @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))

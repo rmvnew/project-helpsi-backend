@@ -183,29 +183,43 @@ export class UnavailableTimesService {
 
 
 
-  // async getUnavailableDates(user_id: string): Promise<{ start: Date, end: Date }[]> {
+  async findFutureAndPresentRangesByPsychologistId(psychologistId: string): Promise<UnavailableTimes[]> {
+
+
+    const currentDate = new Date();
+
+    const records = await this.repository
+      .createQueryBuilder('unavailability')
+      .where('unavailability.psychologist_id = :psychologistId', { psychologistId })
+      .andWhere('unavailability.unavailable_end_time >= :currentDate', { currentDate })
+      .orderBy('unavailability.unavailable_start_time', 'ASC')
+      .getMany();
 
 
 
-  //   const startDate = new Date();
-  //   const endDate = new Date();
-  //   endDate.setMonth(endDate.getMonth() + 2);
+    return records;
+  }
 
-  //   const unavailableTimes = await this.repository.createQueryBuilder("unavailableTimes")
-  //     .innerJoin("unavailableTimes.psychologist", "psychologist")
-  //     .select(['unavailableTimes.unavailable_start_time', 'unavailableTimes.unavailable_end_time'])
-  //     .where("psychologist.user_id = :user_id", { user_id })
-  //     .andWhere("unavailableTimes.unavailable_start_time <= :endDate", { endDate })
-  //     .andWhere("unavailableTimes.unavailable_end_time >= :startDate", { startDate })
-  //     .getMany();
 
-  //   console.log(unavailableTimes);
-  //   return unavailableTimes.map(time => ({
-  //     start: time.unavailable_start_time,
-  //     end: time.unavailable_end_time,
-  //   }));
-  // }
+  async findAllDatesWithinRanges(psychologistId: string): Promise<string[]> {
 
+    const ranges = await this.findFutureAndPresentRangesByPsychologistId(psychologistId);
+    const allDates: string[] = [];
+
+    for (const range of ranges) {
+
+      let currentDate = new Date(range.unavailable_start_time);
+      const endDate = new Date(range.unavailable_end_time);
+
+      while (currentDate <= endDate) {
+        allDates.push(currentDate.toISOString().split('T')[0]);
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+    }
+
+    return allDates;
+  }
 
 
 
