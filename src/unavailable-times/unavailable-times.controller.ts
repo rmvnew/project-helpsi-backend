@@ -44,8 +44,13 @@ export class UnavailableTimesController {
     return this.unavailableTimesService.findAll(filter);
   }
 
+
   @Get('findAllDatesWithinRanges')
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST))
+  @ApiOperation({
+    description: `# Esta rota busca todas datas indisponíveis para agendamento!.
+    Tipo: Autenticada. 
+    Acesso: [Administrador, Psicólogo, Atendente]` })
   async findAllDatesWithinRanges(
     @Query('psychologistId') psychologistId: string
   ) {
