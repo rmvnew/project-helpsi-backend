@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DateTime } from 'luxon';
 import { UserEntity } from 'src/user/entities/user.entity';
@@ -45,7 +45,16 @@ export class SchedulingService {
     }
 
     const currentPatient = await this.getUserById(patient_id);
+
+    if (!currentPatient) {
+      throw new NotFoundException(`Paciente não encontrado!`)
+    }
+
     const currentPsychologist = await this.getUserById(psychologist_id);
+
+    if (!currentPsychologist) {
+      throw new NotFoundException(`Psicólogo não encontrado!`)
+    }
 
     const newAppointment = new Scheduling();
     newAppointment.start_time = startDateTime.toJSDate();
