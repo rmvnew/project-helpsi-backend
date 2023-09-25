@@ -136,6 +136,12 @@ export class SchedulingService {
 
 
 
+  findAll() {
+
+    return this.schedulingRepository.find()
+
+  }
+
 
 
 

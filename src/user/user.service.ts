@@ -331,6 +331,7 @@ export class UserService {
         .where('user.user_id = :user_id', { user_id: id })
         .getOne()
 
+      const currentProfile = user.profile
       const currentAddress = user.address
       const currentPsychologist = user.psychologist
 
@@ -340,6 +341,9 @@ export class UserService {
       const userDto: UserResponseLoginDto = plainToClass(UserResponseLoginDto, user, {
         excludeExtraneousValues: true
       });
+
+
+      userDto.profile = currentProfile
 
       return userDto
 
@@ -1031,6 +1035,7 @@ export class UserService {
     const user = this.userRepository.create(userGoogle)
 
     const currentPassword = Utils.getInstance().generatePassword()
+
     const currentProfile = await this.profileService.getPatient()
 
     user.user_name = user_name.toUpperCase()
