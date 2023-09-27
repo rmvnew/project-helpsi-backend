@@ -1014,6 +1014,7 @@ export class UserService {
   async getAllPsychologists() {
     const psychologists = await this.userRepository.createQueryBuilder('user')
       .leftJoinAndSelect('user.profile', 'profile')
+      .leftJoinAndSelect('user.specialtys', 'specialtys')
       .where('profile.profile_name = :name', { name: `PSYCHOLOGIST` })
       .getMany()
 
@@ -1022,7 +1023,33 @@ export class UserService {
       excludeExtraneousValues: true
     })
 
-    return userDto
+
+    let currentPsychologists = []
+
+
+    for (let psy of userDto) {
+
+
+      const specialtys = await this.specialtyRepository.createQueryBuilder("specialty")
+        .innerJoin("specialty.users", "user")
+        .where("user.user_id = :userId", { userId: psy.user_id })
+        .getMany();
+
+      const specialtiesDto: SpecialtyResponseDto[] = plainToClass(SpecialtyResponseDto, specialtys, {
+        excludeExtraneousValues: true
+      })
+
+      delete psy.specialties
+
+      psy['specialtys'] = specialtiesDto
+
+      currentPsychologists.push(psy)
+
+    }
+
+
+
+    return currentPsychologists
 
 
   }

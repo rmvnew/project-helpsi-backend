@@ -28,6 +28,19 @@ export class SchedulingController {
     return await this.schedulingService.create(createSchedulingDto);
   }
 
+
+  @Get()
+  @UseGuards(PermissionGuard(AccessProfile.ALL))
+  @ApiOperation({
+    description: `# Esta rota mostra todos horários reservados.
+    Tipo: Autenticada. 
+    Acesso: [Todos]` })
+  async findAll() {
+    return await this.schedulingService.findAll()
+  }
+
+
+
   @Get('availability')
   @UseGuards(PermissionGuard(AccessProfile.ALL))
   @ApiOperation({
