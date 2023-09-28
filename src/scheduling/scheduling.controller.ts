@@ -2,7 +2,9 @@ import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import AccessProfile from 'src/auth/enums/permission.type';
 import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
+import { schedulingPath } from 'src/common/routes.path';
 import { CreateSchedulingDto } from './dto/create-scheduling.dto';
+import { SchedulingFilter } from './dto/scheduling.filter';
 import { SchedulingService } from './scheduling.service';
 
 @Controller('scheduling')
@@ -35,8 +37,12 @@ export class SchedulingController {
     description: `# Esta rota mostra todos horários reservados.
     Tipo: Autenticada. 
     Acesso: [Todos]` })
-  async findAll() {
-    return await this.schedulingService.findAll()
+  async findAll(@Query() filter: SchedulingFilter) {
+
+    filter.route = schedulingPath()
+
+
+    return await this.schedulingService.findAll(filter)
   }
 
 

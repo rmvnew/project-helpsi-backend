@@ -13,5 +13,9 @@ export function getUnavailablePath() {
     return `${process.env.SWAGGER_API_URL}/v1/unavailable-times`
 }
 
+export function schedulingPath() {
+    return `${process.env.SWAGGER_API_URL}/v1/scheduling`
+}
+
 
 

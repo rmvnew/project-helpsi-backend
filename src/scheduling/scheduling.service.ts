@@ -1,15 +1,17 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DateTime } from 'luxon';
+import { paginate } from 'nestjs-typeorm-paginate';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { Between, LessThanOrEqual, MoreThan, Repository } from 'typeorm';
 import { CreateSchedulingDto } from './dto/create-scheduling.dto';
+import { SchedulingFilter } from './dto/scheduling.filter';
 import { Scheduling } from './entities/scheduling.entity';
 
 @Injectable()
 export class SchedulingService {
 
-
+  private readonly logger = new Logger(SchedulingService.name)
 
   constructor(
     @InjectRepository(Scheduling)
@@ -136,9 +138,61 @@ export class SchedulingService {
 
 
 
-  findAll() {
+  async findAll(filter: SchedulingFilter) {
 
-    return this.schedulingRepository.find()
+
+    console.log('Filter: ', filter);
+
+    try {
+      const { sort, orderBy, patient_id, psychologist_id, start_time, end_time } = filter;
+
+
+      const schedulingQueryBuilder = this.schedulingRepository.createQueryBuilder('task')
+
+
+
+
+      if (patient_id) {
+        schedulingQueryBuilder
+          .andWhere('task.patient_id = :patient_id', { patient_id })
+      }
+
+      if (psychologist_id) {
+        schedulingQueryBuilder
+          .andWhere('task.psychologist_id = :psychologist_id', { psychologist_id })
+      }
+
+
+      if (start_time) {
+        schedulingQueryBuilder
+          .andWhere('task.start_time >= :start_time', { start_time })
+      }
+
+      if (end_time) {
+        schedulingQueryBuilder
+          .andWhere('task.end_time <= :end_time', { end_time })
+      }
+
+
+      schedulingQueryBuilder.orderBy('task.create_at', `${sort === 'DESC' ? 'DESC' : 'ASC'}`);
+
+
+      const page = await paginate<Scheduling>(schedulingQueryBuilder, filter);
+
+
+
+
+      page.links.first = page.links.first === '' ? '' : `${page.links.first}&sort=${sort}&orderBy=${orderBy}`;
+      page.links.previous = page.links.previous === '' ? '' : `${page.links.previous}&sort=${sort}&orderBy=${orderBy}`;
+      page.links.last = page.links.last === '' ? '' : `${page.links.last}&sort=${sort}&orderBy=${orderBy}`;
+      page.links.next = page.links.next === '' ? '' : `${page.links.next}&sort=${sort}&orderBy=${orderBy}`;
+
+      return page;
+
+    } catch (error) {
+      this.logger.error(`findAll error: ${error.message}`, error.stack)
+      throw error;
+    }
 
   }
 

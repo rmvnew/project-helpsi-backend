@@ -7,7 +7,6 @@ export class FilterUser extends FilterPagination {
     user_name: string
 
     @ApiProperty({ required: false })
-    @ApiProperty({ required: false })
     showActives?: 'true' | 'false';
 
 
