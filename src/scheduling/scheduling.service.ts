@@ -141,8 +141,6 @@ export class SchedulingService {
   async findAll(filter: SchedulingFilter) {
 
 
-    console.log('Filter: ', filter);
-
     try {
       const { sort, orderBy, patient_id, psychologist_id, start_time, end_time } = filter;
 
