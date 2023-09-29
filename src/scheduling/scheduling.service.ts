@@ -148,8 +148,6 @@ export class SchedulingService {
       const schedulingQueryBuilder = this.schedulingRepository.createQueryBuilder('task')
 
 
-
-
       if (patient_id) {
         schedulingQueryBuilder
           .andWhere('task.patient_id = :patient_id', { patient_id })
@@ -178,6 +176,27 @@ export class SchedulingService {
       const page = await paginate<Scheduling>(schedulingQueryBuilder, filter);
 
 
+      for (let item of page.items) {
+
+
+        const itemQueryBuilder = await this.schedulingRepository.createQueryBuilder('task')
+          .leftJoinAndSelect('task.patient', 'patient')
+          .leftJoinAndSelect('task.psychologist', 'psychologist')
+          .where('task.scheduling_id = :scheduling_id', { scheduling_id: item.scheduling_id })
+          .getOne()
+
+        delete item.patient
+        delete itemQueryBuilder.patient.user_password
+        delete itemQueryBuilder.patient.user_2fa_secret
+        item['currentPatient'] = itemQueryBuilder.patient
+
+        delete item.psychologist
+        delete itemQueryBuilder.psychologist.user_password
+        delete itemQueryBuilder.psychologist.user_2fa_secret
+        item['currentPsychologist'] = itemQueryBuilder.psychologist
+
+
+      }
 
 
       page.links.first = page.links.first === '' ? '' : `${page.links.first}&sort=${sort}&orderBy=${orderBy}`;
