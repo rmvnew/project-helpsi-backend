@@ -14,14 +14,14 @@ export class MailService {
       port: 587,
       secure: false,
       auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASSWORD,
+        user: 'helpsimanaus@outlook.com',
+        pass: 'h3lp$1Manaus',
       },
     });
 
-    console.log("Inicializando MailService...");
-    console.log("User:", process.env.MAIL_USER);
-    console.log("Pass:", process.env.MAIL_PASSWORD ? 'Password Present' : 'Password Absent');
+    // console.log("Inicializando MailService...");
+    // console.log("User:", process.env.MAIL_USER);
+    // console.log("Pass:", process.env.MAIL_PASSWORD ? 'Password Present' : 'Password Absent');
   }
 
   sendMail(codeRecover: CodeRecoverInterface) {
