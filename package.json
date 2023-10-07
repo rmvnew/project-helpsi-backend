@@ -5,6 +5,9 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "engines":{
+    "node":"18"
+  },
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
@@ -54,6 +57,7 @@
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
     "speakeasy": "^2.0.0",
+    "tsup": "^7.2.0",
     "typeorm": "^0.3.7"
   },
   "devDependencies": {
