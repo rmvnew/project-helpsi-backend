@@ -1,7 +1,10 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import * as dotenv from 'dotenv';
 import { AppModule } from './app.module';
 import { SwaggerService } from './config/swagger/swagger.service';
+
+dotenv.config();
 
 async function bootstrap() {
   try {
@@ -22,6 +25,9 @@ async function bootstrap() {
       }))
 
     await app.listen(process.env.APP_PORT);
+
+
+
   } catch (error) {
     console.log('->', error);
   }
