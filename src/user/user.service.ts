@@ -1089,5 +1089,22 @@ export class UserService {
   }
 
 
+  async checkingRegisterCompleteByEmail(email: string) {
+
+    const user = await this.userRepository.createQueryBuilder('user')
+      .leftJoinAndSelect('user.psychologist', 'psychologist')
+      .leftJoinAndSelect('user.address', 'address')
+      .where('user.user_email = :user_email', { user_email: email })
+      .getOne()
+
+    const fieldsToCheck = ['user_rg', 'user_cpf', 'psychologist', 'address'];
+
+    const isComplete = fieldsToCheck.every(field => user[field] !== null);
+
+    return isComplete;
+
+  }
+
+
 
 }

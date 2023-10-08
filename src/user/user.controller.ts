@@ -153,6 +153,22 @@ export class UserController {
     return this.userService.getCurrentUser(req.user.sub)
   }
 
+
+
+  @Get('/patient-register')
+  @UseGuards(PermissionGuard(AccessProfile.ALL))
+  @ApiOperation({
+    description: `# Esta rota retorna verdadeiro se o cadastro estiver com dados suficientes para o paciente iniciar o processo de atendimento.
+    Tipo: Autenticada. 
+    Acesso: [Todos]` })
+  @ApiQuery({ name: 'email', required: true, description: '### E-mail do paciente. ' })
+  async checkingRegisterCompleteByEmail(
+    @Query('email') email: string
+  ) {
+    return this.userService.checkingRegisterCompleteByEmail(email)
+  }
+
+
   /**
  
   params iten 
@@ -314,6 +330,10 @@ export class UserController {
   ): Promise<UserResponseDto> {
     return this.userService.createPatient(createPatientDto)
   }
+
+
+
+
 
 
 }
