@@ -17,11 +17,11 @@ export class UnavailableTimesController {
   constructor(private readonly unavailableTimesService: UnavailableTimesService) { }
 
   @Post()
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @UseGuards(PermissionGuard(AccessProfile.ALL))
   @ApiOperation({
     description: `# Esta rota adiciona uma data de indisponibilidade.
     Tipo: Autenticada. 
-    Acesso: [Administrador, Psicólogo, Atendente]` })
+    Acesso: [Todos]` })
 
   @ApiBody({
     description: '## Schema padrão para criar o evento.',
@@ -32,11 +32,11 @@ export class UnavailableTimesController {
   }
 
   @Get()
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @UseGuards(PermissionGuard(AccessProfile.ALL))
   @ApiOperation({
     description: `# Esta rota busca todas datas indisponíveis para agendamento!.
     Tipo: Autenticada. 
-    Acesso: [Administrador, Psicólogo, Atendente]` })
+    Acesso: [Todos]` })
   async findAll(@Query() filter: UnavailableFilter) {
 
     filter.route = getUnavailablePath();
@@ -46,11 +46,11 @@ export class UnavailableTimesController {
 
 
   @Get('findAllDatesWithinRanges')
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST))
+  @UseGuards(PermissionGuard(AccessProfile.ALL))
   @ApiOperation({
     description: `# Esta rota busca todas datas indisponíveis para agendamento!.
     Tipo: Autenticada. 
-    Acesso: [Administrador, Psicólogo, Atendente]` })
+    Acesso: [Todos]` })
   async findAllDatesWithinRanges(
     @Query('psychologistId') psychologistId: string
   ) {
@@ -64,33 +64,33 @@ export class UnavailableTimesController {
 
 
   @Get(':id')
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @UseGuards(PermissionGuard(AccessProfile.ALL))
   @ApiOperation({
     description: `# Esta rota busca data indisponíveil por Id!.
     Tipo: Autenticada. 
-    Acesso: [Administrador, Psicólogo, Atendente]` })
+    Acesso: [Todos]` })
   @ApiParam({ name: 'id', description: '### Id do evento' })
   async findOne(@Param('id') id: string) {
     return this.unavailableTimesService.findOne(id);
   }
 
   @Put(':id')
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @UseGuards(PermissionGuard(AccessProfile.ALL))
   @ApiOperation({
     description: `# Esta rota atualiza um evento para marcar datas indisponíveis por Id!.
     Tipo: Autenticada. 
-    Acesso: [Administrador, Psicólogo, Atendente]` })
+    Acesso: [Todos]` })
   @ApiParam({ name: 'id', description: '### Id do evento' })
   async update(@Param('id') id: string, @Body() updateUnavailableTimeDto: UpdateUnavailableTimeDto) {
     return this.unavailableTimesService.update(id, updateUnavailableTimeDto);
   }
 
   @Delete(':id')
-  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @UseGuards(PermissionGuard(AccessProfile.ALL))
   @ApiOperation({
     description: `# Esta rota deleta um evento para marcar datas indisponíveis por Id!.
     Tipo: Autenticada. 
-    Acesso: [Administrador, Psicólogo, Atendente]` })
+    Acesso: [Todos]` })
   @ApiParam({ name: 'id', description: '### Id do evento' })
   async remove(@Param('id') id: string) {
     return this.unavailableTimesService.remove(id);
