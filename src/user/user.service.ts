@@ -910,11 +910,27 @@ export class UserService {
         patient.psychologist = psychologist ? psychologist : null;
       }
 
+
+      if (user_cpf) {
+
+        const validCpf = Utils.getInstance().validateCPF(user_cpf)
+
+        if (validCpf.isValid) {
+
+          patient.user_rg = validCpf.cpf
+
+        } else {
+          throw new BadRequestException(`O cpf: ${user_cpf} é inválido!!`)
+        }
+
+      }
+
       const patientProfile = await this.profileRepository.findOne({
         where: {
           profile_name: 'PATIENT'
         }
       })
+
 
 
       patient.user_status = true;
@@ -924,7 +940,7 @@ export class UserService {
       patient.user_enrollment = Utils.getInstance().getEnrollmentCode()
       patient.user_2fa_active = false
       patient.user_cpf = user_cpf
-      patient.user_rg = user_rg
+
 
       const dateParts = user_date_of_birth.split("/");
       patient.user_date_of_birth = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));

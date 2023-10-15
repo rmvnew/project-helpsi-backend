@@ -161,4 +161,52 @@ export class Utils {
     }
 
 
+
+    validateCPF(cpf: string): { cpf: string; isValid: boolean } {
+        // Remover caracteres não numéricos
+        const sanitizedCPF = cpf.replace(/[^\d]+/g, '');
+
+        let isValid = true;
+
+        if (sanitizedCPF.length !== 11) {
+            isValid = false;
+        }
+
+        if (/^(\d)\1+$/.test(sanitizedCPF)) {
+            isValid = false;
+        }
+
+        let sum = 0;
+        let remainder;
+
+        // Validar primeiro dígito verificador
+        for (let i = 1; i <= 9; i++) {
+            sum += parseInt(sanitizedCPF.substring(i - 1, i)) * (11 - i);
+        }
+        remainder = (sum * 10) % 11;
+        if (remainder === 10 || remainder === 11) remainder = 0;
+        if (remainder !== parseInt(sanitizedCPF.substring(9, 10))) {
+            isValid = false;
+        }
+
+        // Validar segundo dígito verificador
+        sum = 0;
+        for (let i = 1; i <= 10; i++) {
+            sum += parseInt(sanitizedCPF.substring(i - 1, i)) * (12 - i);
+        }
+        remainder = (sum * 10) % 11;
+        if (remainder === 10 || remainder === 11) remainder = 0;
+        if (remainder !== parseInt(sanitizedCPF.substring(10, 11))) {
+            isValid = false;
+        }
+
+        return {
+            cpf: sanitizedCPF,
+            isValid,
+        };
+    }
+
+
+
+
 }

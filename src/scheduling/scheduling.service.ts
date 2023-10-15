@@ -141,6 +141,7 @@ export class SchedulingService {
   async findAll(filter: SchedulingFilter) {
 
 
+
     try {
       const { sort, orderBy, patient_id, psychologist_id, start_time, end_time } = filter;
 
@@ -168,6 +169,8 @@ export class SchedulingService {
         schedulingQueryBuilder
           .andWhere('task.end_time <= :end_time', { end_time })
       }
+
+
 
 
       schedulingQueryBuilder.orderBy('task.create_at', `${sort === 'DESC' ? 'DESC' : 'ASC'}`);
@@ -198,6 +201,7 @@ export class SchedulingService {
 
       }
 
+      console.log(page);
 
       page.links.first = page.links.first === '' ? '' : `${page.links.first}&sort=${sort}&orderBy=${orderBy}`;
       page.links.previous = page.links.previous === '' ? '' : `${page.links.previous}&sort=${sort}&orderBy=${orderBy}`;
