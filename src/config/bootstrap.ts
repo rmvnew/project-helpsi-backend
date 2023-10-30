@@ -21,7 +21,7 @@ export class Bootstrap {
 
         const userHaveData = await this.userService.haveAdmin('sysadmin')
 
-        const test = await this.specialtyService.checkView()
+        await this.specialtyService.checkView()
 
         let currentProfile = null
 
