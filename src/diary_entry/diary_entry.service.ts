@@ -155,7 +155,11 @@ export class DiaryEntryService {
     // }
 
     try {
-      const pythonOutput = execSync(`python3 /home/ricardo/Project/UNINORTE/Project-Helpsi/back/src/common/ia/teste.py "${text}"`, {
+      // const pythonOutput = execSync(`python3 /home/ricardo/Project/UNINORTE/Project-Helpsi/back/src/common/ia/teste.py "${text}"`, {
+      //   encoding: 'utf-8',
+      // });
+
+      const pythonOutput = execSync(`python3 src/common/ia/teste.py "${text}"`, {
         encoding: 'utf-8',
       });
       const result = JSON.parse(pythonOutput);
