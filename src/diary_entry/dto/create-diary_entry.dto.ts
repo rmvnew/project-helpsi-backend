@@ -9,6 +9,6 @@ export class CreateDiaryEntryDto {
     text: string;
 
     @ApiProperty()
-    patient_details_id: number
+    patient_details_id: string
 
 }

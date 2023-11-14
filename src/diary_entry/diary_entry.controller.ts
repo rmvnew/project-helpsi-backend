@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import AccessProfile from 'src/auth/enums/permission.type';
 import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
 import { getDiaryEntryPath } from 'src/common/routes.path';
@@ -45,6 +45,17 @@ export class DiaryEntryController {
     return this.diaryEntryService.findAll(filter);
   }
 
+  @Get('/emotion')
+  @ApiOperation({
+    description: `# Esta rota busca o resultado de mineração de dados baseado nas emoções dos textos do paciente.
+    Tipo: Autenticada. 
+    Acesso: [Administrador,Psicólogo]` })
+  @ApiQuery({ name: 'text', required: false })
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST))
+  async getEmotion(@Query('text') text: string) {
+    return this.diaryEntryService.classifyText(text)
+  }
+
   @Get(':id')
   @ApiOperation({
     description: `# Esta rota busca um registro de diário por Id.
@@ -77,4 +88,8 @@ export class DiaryEntryController {
   remove(@Param('id') id: string) {
     return this.diaryEntryService.remove(id);
   }
+
+
+
+
 }

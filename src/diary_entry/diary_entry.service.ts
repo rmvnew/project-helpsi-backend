@@ -1,6 +1,8 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { execSync } from 'child_process';
 import { paginate } from 'nestjs-typeorm-paginate';
+import { PatientDetailsService } from 'src/patient_details/patient_details.service';
 import { Repository } from 'typeorm';
 import { CreateDiaryEntryDto } from './dto/create-diary_entry.dto';
 import { DiaryFilter } from './dto/diary.filter';
@@ -14,13 +16,24 @@ export class DiaryEntryService {
 
   constructor(
     @InjectRepository(DiaryEntry)
-    private readonly diaryEntryRepository: Repository<DiaryEntry>
+    private readonly diaryEntryRepository: Repository<DiaryEntry>,
+    private readonly patientDetailsService: PatientDetailsService
   ) { }
 
 
   async create(createDiaryEntryDto: CreateDiaryEntryDto) {
 
+
+    const { patient_details_id } = createDiaryEntryDto
+
+    if (!patient_details_id) {
+      throw new BadRequestException('Patient details não encontrada')
+    }
+
+    const details = await this.patientDetailsService.findOne(patient_details_id)
+
     const diary = this.diaryEntryRepository.create(createDiaryEntryDto)
+    diary.patient_details = details
 
     return this.diaryEntryRepository.save(diary)
   }
@@ -30,7 +43,17 @@ export class DiaryEntryService {
     try {
       const { sort, orderBy } = filter;
 
+
       const diaryQueryBuilder = this.diaryEntryRepository.createQueryBuilder('diary')
+        .leftJoinAndSelect('diary.patient_details', 'patient')
+        .leftJoin('patient.user', 'user') // Usamos 'leftJoin' aqui para não selecionar todos os detalhes do usuário
+        .addSelect('user.user_id')
+
+
+
+
+
+      diaryQueryBuilder
         .orderBy('diary.create_at', `${sort === 'DESC' ? 'DESC' : 'ASC'}`);
 
       const page = await paginate<DiaryEntry>(diaryQueryBuilder, filter);
@@ -81,4 +104,92 @@ export class DiaryEntryService {
 
     await this.diaryEntryRepository.delete(isRegistered.diary_entry_id)
   }
+
+
+  // classifyText(text: string): any {
+
+
+
+  //   const scriptPath = join('/home/ricardo/Project/UNINORTE/Project\\ Helpsi/back/src/common/ia/text_classification.py');
+
+  //   // const scriptPath = join(__dirname, 'src/diary_entry/text_classification.py');
+
+
+  //   const rawOutput = execSync(`python3 ${scriptPath} "${text}"`).toString();
+
+
+  //   let result;
+  //   try {
+  //     result = JSON.parse(rawOutput);
+  //   } catch (err) {
+  //     console.error('Failed to parse the output:', err);
+  //   }
+
+  //   return result;
+  // }
+
+
+  classifyText(text: string): any {
+    // const scriptPath = join('/home/ricardo/Project/UNINORTE/Project-Helpsi/back/src/common/ia/text_classification.py');
+
+    // try {
+    //   const rawOutput = execSync(`python3 ${scriptPath} "${text}"`, { encoding: 'utf-8' });
+    //   console.log('Saída Bruta:', rawOutput);
+
+    //   if (rawOutput && typeof rawOutput === 'string') {
+    //     try {
+    //       const result = JSON.parse(rawOutput);
+    //       return result;
+    //     } catch (err) {
+    //       console.error('Erro ao analisar a saída JSON:', err);
+    //       return { error: 'Erro ao analisar a saída JSON' };
+    //     }
+    //   } else {
+    //     console.error('Saída do script Python está vazia');
+    //     return { error: 'Saída do script Python está vazia' };
+    //   }
+    // } catch (err) {
+    //   console.error('Um erro ocorreu durante a execução do script Python:', err);
+    //   console.error('Stderr:', err.stderr?.toString() || 'N/A');
+    //   return { error: 'Erro durante a execução do script Python' };
+    // }
+
+    try {
+      const pythonOutput = execSync(`python3 /home/ricardo/Project/UNINORTE/Project-Helpsi/back/src/common/ia/teste.py "${text}"`, {
+        encoding: 'utf-8',
+      });
+      const result = JSON.parse(pythonOutput);
+
+      const res = this.processEmotionData(result)
+
+      return res;
+    } catch (error) {
+      console.error('Error running Python script:', error);
+      return null;
+    }
+  }
+
+
+  convertToPercentage(emotion: Record<string, number>): Record<string, string> {
+    let percentageEmotion: Record<string, string> = {};
+
+    for (const [key, value] of Object.entries(emotion)) {
+      percentageEmotion[key] = `${(value * 100).toFixed(2)}%`;
+    }
+
+    return percentageEmotion;
+  }
+
+  processEmotionData(data: any): any {
+    const { text, emotion } = data;
+
+    const emotionInPercentage = this.convertToPercentage(emotion);
+
+    return {
+      text,
+      emotion: emotionInPercentage
+    };
+  }
+
+
 }

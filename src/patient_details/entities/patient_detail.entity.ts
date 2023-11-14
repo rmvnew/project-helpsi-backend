@@ -16,10 +16,10 @@ export class PatientDetails {
     consultation_reason: string;
 
     @Column({ type: 'text', nullable: true })
-    diagnosis: string;
+    previous_diagnosis: string;
 
-    @Column({ type: 'text' })
-    therapy_type: string;
+    @Column({ type: 'text', nullable: true })
+    diagnosis: string;
 
     @Column({ type: 'text' })
     session_frequency: string;
@@ -33,7 +33,7 @@ export class PatientDetails {
     @OneToOne(() => UserEntity, user => user.patientDetails)
     user: UserEntity;
 
-    @OneToMany(() => DiaryEntry, diaryEntry => diaryEntry.patient)
+    @OneToMany(() => DiaryEntry, diaryEntry => diaryEntry.patient_details)
     diary_entries: DiaryEntry[];
 
 
