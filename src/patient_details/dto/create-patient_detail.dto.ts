@@ -6,24 +6,26 @@ export class CreatePatientDetailDto {
 
 
     @ApiProperty()
-    consultation_reason: string;
+    consultation_reason?: string = null
 
     @ApiProperty()
-    diagnosis: string;
+    previous_diagnosis?: string = null
 
     @ApiProperty()
-    therapy_type: string;
+    diagnosis?: string = null
 
     @ApiProperty()
-    session_frequency: string;
+    therapy_type?: string = null
 
     @ApiProperty()
-    last_session_date: Date;
+    session_frequency?: string = null
 
     @ApiProperty()
-    current_status: string;
+    last_session_date?: string = null
 
     @ApiProperty()
-    patient_id: string
+    current_status?: string = null
+
+
 
 }

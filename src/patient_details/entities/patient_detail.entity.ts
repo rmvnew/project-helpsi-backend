@@ -12,7 +12,7 @@ export class PatientDetails {
     @Column({ type: 'date' })
     start_date: Date;
 
-    @Column({ type: 'text' })
+    @Column({ type: 'text', nullable: true })
     consultation_reason: string;
 
     @Column({ type: 'text', nullable: true })
@@ -21,13 +21,13 @@ export class PatientDetails {
     @Column({ type: 'text', nullable: true })
     diagnosis: string;
 
-    @Column({ type: 'text' })
+    @Column({ type: 'text', nullable: true })
     session_frequency: string;
 
-    @Column({ type: 'date', nullable: true })
-    last_session_date: Date;
+    @Column({ type: 'text', nullable: true })
+    last_session_date: string;
 
-    @Column({ type: 'text' })
+    @Column({ type: 'text', nullable: true })
     current_status: string;
 
     @OneToOne(() => UserEntity, user => user.patientDetails)

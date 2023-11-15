@@ -14,6 +14,7 @@ import { Validations } from 'src/common/validations';
 import { HistoricRecover } from 'src/historic_recover/entities/historic-recover.entity';
 import { HistoricRecoverService } from 'src/historic_recover/historic-recover.service';
 import { MailService } from 'src/mail/mail.service';
+import { PatientDetailsService } from 'src/patient_details/patient_details.service';
 import { ProfileEntity } from 'src/profile/entities/profile.entity';
 import { ProfileService } from 'src/profile/profile.service';
 import { SpecialtyResponseDto } from 'src/specialty/dto/specialty.response.dto';
@@ -53,7 +54,8 @@ export class UserService {
     @InjectRepository(Address)
     private readonly addressRepository: Repository<Address>,
     @InjectRepository(Specialty)
-    private readonly specialtyRepository: Repository<Specialty>
+    private readonly specialtyRepository: Repository<Specialty>,
+    private readonly patientDetailsService: PatientDetailsService
 
   ) { }
 
@@ -940,6 +942,11 @@ export class UserService {
       patient.user_enrollment = Utils.getInstance().getEnrollmentCode()
       patient.user_2fa_active = false
       patient.user_cpf = user_cpf
+
+
+      const patient_details = await this.patientDetailsService.create({})
+
+      patient.patientDetails = patient_details
 
 
       const dateParts = user_date_of_birth.split("/");

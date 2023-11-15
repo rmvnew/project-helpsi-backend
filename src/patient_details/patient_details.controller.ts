@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiExcludeEndpoint, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import AccessProfile from 'src/auth/enums/permission.type';
 import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
 import { CreatePatientDetailDto } from './dto/create-patient_detail.dto';
@@ -15,6 +15,7 @@ export class PatientDetailsController {
   constructor(private readonly patientDetailsService: PatientDetailsService) { }
 
   @Post()
+  @ApiExcludeEndpoint()
   @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST))
   @ApiOperation({
     description: `# Esta rota cria novo Detalhe de paciente.
