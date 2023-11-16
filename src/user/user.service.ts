@@ -14,6 +14,8 @@ import { Validations } from 'src/common/validations';
 import { HistoricRecover } from 'src/historic_recover/entities/historic-recover.entity';
 import { HistoricRecoverService } from 'src/historic_recover/historic-recover.service';
 import { MailService } from 'src/mail/mail.service';
+import { PatientDetailsResponseDto } from 'src/patient_details/dto/patient-details.dto';
+import { PatientDetails } from 'src/patient_details/entities/patient_detail.entity';
 import { PatientDetailsService } from 'src/patient_details/patient_details.service';
 import { ProfileEntity } from 'src/profile/entities/profile.entity';
 import { ProfileService } from 'src/profile/profile.service';
@@ -279,6 +281,12 @@ export class UserService {
 
   transformPsychologist(psychologist: UserEntity): PsychologistBasicResponseDto {
     return plainToClass(PsychologistBasicResponseDto, psychologist, {
+      excludeExtraneousValues: true
+    });
+  }
+
+  transformPatientDetails(patientDetails: PatientDetails): PatientDetailsResponseDto {
+    return plainToClass(PatientDetailsResponseDto, patientDetails, {
       excludeExtraneousValues: true
     });
   }
@@ -1127,6 +1135,106 @@ export class UserService {
     return isComplete;
 
   }
+
+
+  async findAllPatients(filter: FilterUser): Promise<Pagination<any>> {
+
+    try {
+      const { sort, orderBy, user_name, showActives } = filter;
+
+
+      const userQueryBuilder = this.userRepository.createQueryBuilder('user')
+        .leftJoinAndSelect('user.profile', 'profile')
+        .where(`profile.profile_name = 'PATIENT'`)
+
+
+      if (showActives === "true") {
+        userQueryBuilder.andWhere('user.user_status = true');
+      }
+      if (user_name) {
+        userQueryBuilder.andWhere(`user.user_name LIKE :user_name`, {
+          user_name: `%${user_name}%`
+        });
+      }
+      if (orderBy == SortingType.DATE) {
+        userQueryBuilder.orderBy('user.create_at', `${sort === 'DESC' ? 'DESC' : 'ASC'}`);
+      } else {
+        userQueryBuilder.orderBy('user.user_name', `${sort === 'DESC' ? 'DESC' : 'ASC'}`);
+      }
+      const page = await paginate<UserEntity>(userQueryBuilder, filter);
+
+
+      for (let user of page.items) {
+
+
+        if (user.user_id) {
+
+          const currentUser = await this.userRepository.createQueryBuilder('user')
+            .leftJoinAndSelect('user.address', 'address')
+            .leftJoinAndSelect('user.psychologist', 'psychologist')
+            .leftJoinAndSelect('user.patientDetails', 'patientDetails')
+            .where('user.user_id = :id', { id: user.user_id })
+            .getOne()
+
+          const currentAddress = currentUser.address
+          const currentPsychologist = currentUser.psychologist
+          const currentPatientDetails = currentUser.patientDetails
+
+          const specialtys = await this.specialtyRepository.createQueryBuilder("specialty")
+            .innerJoin("specialty.users", "user")
+            .where("user.user_id = :userId", { userId: user.user_id })
+            .getMany();
+
+          const specialtyDtos = specialtys.map(specialty => {
+            return {
+              specialty_id: specialty.specialty_id,
+              specialty_name: specialty.specialty_name,
+              users: specialty.users
+            }
+          });
+
+
+
+          user.specialtys = specialtyDtos;
+          user.address = this.transformAddress(currentAddress)
+          user['basicPsychologist'] = this.transformPsychologist(currentPsychologist)
+          user['patientDetail'] = this.transformPatientDetails(currentPatientDetails)
+          delete user.user_password
+          delete user.user_2fa_secret
+
+        }
+      }
+
+
+
+      // const userDtos: UserPatientResponseDto[] = plainToClass(UserPatientResponseDto, page.items, {
+      //   excludeExtraneousValues: true
+      // });
+
+
+
+      // const transformedPage = {
+      //   ...page,
+      //   items: userDtos,
+      // };
+
+
+      page.links.first = page.links.first === '' ? '' : `${page.links.first}&sort=${sort}&orderBy=${orderBy}`;
+      page.links.previous = page.links.previous === '' ? '' : `${page.links.previous}&sort=${sort}&orderBy=${orderBy}`;
+      page.links.last = page.links.last === '' ? '' : `${page.links.last}&sort=${sort}&orderBy=${orderBy}`;
+      page.links.next = page.links.next === '' ? '' : `${page.links.next}&sort=${sort}&orderBy=${orderBy}`;
+
+      return page;
+
+    } catch (error) {
+      this.logger.error(`findAll error: ${error.message}`, error.stack)
+      throw error;
+    }
+  }
+
+
+
+
 
 
 

@@ -5,6 +5,10 @@ export function getUserPath() {
     return `${process.env.SWAGGER_API_URL}/v1/user`
 }
 
+export function getUserPatientPath() {
+    return `${process.env.SWAGGER_API_URL}/v1/user/all-patients`
+}
+
 export function getDiaryEntryPath() {
     return `${process.env.SWAGGER_API_URL}/v1/diary-entry`
 }

@@ -5,7 +5,7 @@ import AccessProfile from 'src/auth/enums/permission.type';
 import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
 import { PublicRoute } from 'src/common/decorators/public_route.decorator';
 import { RecoverInterface } from 'src/common/interfaces/recover.interface';
-import { getUserPath } from 'src/common/routes.path';
+import { getUserPath, getUserPatientPath } from 'src/common/routes.path';
 import { ProfileEntity } from 'src/profile/entities/profile.entity';
 import { FilterUser } from './dto/Filter.user';
 import { CreatePatientDto } from './dto/create-patient.dto';
@@ -168,6 +168,25 @@ export class UserController {
     return this.userService.checkingRegisterCompleteByEmail(email)
   }
 
+
+  @Get('/all-patients')
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @ApiOperation({
+    description: `# Esta rota busca todos Pacientes.
+    Tipo: Autenticada. 
+    Acesso: [Administrador, Psicólogo, Atendente]` })
+  @ApiQuery({ name: 'user_name', required: false, description: '### Este é um filtro opcional!' })
+  async findAllPpatients(
+    @Query() query
+  ): Promise<Pagination<UserResponseDto>> {
+
+    const filter: FilterUser = {
+      ...new FilterUser(),
+      ...query
+    };
+    filter.route = getUserPatientPath();
+    return this.userService.findAllPatients(filter);
+  }
 
   /**
  
