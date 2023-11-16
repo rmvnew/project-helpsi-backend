@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, Length, Matches, Validate } from 'class-validator';
+import { IsNotEmpty, IsOptional, Length, Validate } from 'class-validator';
 import { CreateAddressDto } from 'src/address/dto/create-address.dto';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { IsValidAgeConstraint } from './isValidAgeConstraint';
@@ -15,7 +15,7 @@ export class CreateUserDto {
     user_email: string;
 
     @IsOptional()
-    @Matches(/^(?!([0-9])\1+$)[1-9]{2}9?[0-9]{8}$/, { message: 'O número de telefone deve ser válido e não deve conter todos os dígitos iguais.' })
+    // @Matches(/^(?!([0-9])\1+$)[1-9]{2}9?[0-9]{8}$/, { message: 'O número de telefone deve ser válido e não deve conter todos os dígitos iguais.' })
     user_phone?: string;
 
     @ApiProperty()

@@ -1,14 +1,18 @@
 import { BadGatewayException, BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
+import { cpf } from 'cpf-cnpj-validator';
+// import { faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker/locale/pt_BR';
 import { Pagination, paginate } from 'nestjs-typeorm-paginate';
 import * as QRCode from 'qrcode';
 import * as speakeasy from 'speakeasy';
 import { AddressResponseDto } from 'src/address/dto/address.response.dto';
 import { Address } from 'src/address/entities/address.entity';
-import { SortingType, ValidType } from 'src/common/Enums';
+import { SortingType, UserGenderType, ValidType } from 'src/common/Enums';
 import { Utils } from 'src/common/Utils';
 import { CodeRecoverInterface, WellcomeInterface } from 'src/common/interfaces/email.interface';
+import { UserFake } from 'src/common/interfaces/fake.interface';
 import { RecoverInterface } from 'src/common/interfaces/recover.interface';
 import { Validations } from 'src/common/validations';
 import { HistoricRecover } from 'src/historic_recover/entities/historic-recover.entity';
@@ -39,6 +43,7 @@ import { UserEntity } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
+
 
 
   private readonly logger = new Logger(UserService.name)
@@ -883,11 +888,11 @@ export class UserService {
         ValidType.IS_STRING
       );
 
-      Validations.getInstance().validateWithRegex(
-        patient.user_email,
-        ValidType.IS_EMAIL,
-        ValidType.NO_SPACE
-      );
+      // Validations.getInstance().validateWithRegex(
+      //   patient.user_email,
+      //   ValidType.IS_EMAIL,
+      //   ValidType.NO_SPACE
+      // );
 
       Validations.getInstance().verifyLength(
         patient.user_name, 'Name', 5, 40
@@ -1207,18 +1212,6 @@ export class UserService {
 
 
 
-      // const userDtos: UserPatientResponseDto[] = plainToClass(UserPatientResponseDto, page.items, {
-      //   excludeExtraneousValues: true
-      // });
-
-
-
-      // const transformedPage = {
-      //   ...page,
-      //   items: userDtos,
-      // };
-
-
       page.links.first = page.links.first === '' ? '' : `${page.links.first}&sort=${sort}&orderBy=${orderBy}`;
       page.links.previous = page.links.previous === '' ? '' : `${page.links.previous}&sort=${sort}&orderBy=${orderBy}`;
       page.links.last = page.links.last === '' ? '' : `${page.links.last}&sort=${sort}&orderBy=${orderBy}`;
@@ -1230,11 +1223,59 @@ export class UserService {
       this.logger.error(`findAll error: ${error.message}`, error.stack)
       throw error;
     }
+
+
+
+
   }
 
 
+  async generatedUserFake(quantity: number) {
+
+    let persons = []
+
+    for (let index = 0; index <= quantity; index++) {
+
+      const genero = Math.random() > 0.5 ? 'male' : 'female';
+      const emailLocalPart = faker.internet.userName().toLowerCase();
+
+      const person: UserFake = {
+        user_name: faker.person.fullName({ sex: `${genero}` })
+          .replace(/(Sra\.|Dr\.)\s?/g, "")
+          .replace(/[^a-zA-ZáéíóúÁÉÍÓÚãõÃÕâêîôûÂÊÎÔÛçÇ -]/g, ""),
+        user_email: `${emailLocalPart}@gmail.com`,
+        user_phone: faker.phone.number(),
+        user_password: faker.internet.password(),
+        user_profile_id: 2,
+        user_date_of_birth: faker.date.between({ from: new Date('1923-01-01'), to: new Date('2019-12-31') }).toISOString().split('T')[0],
+        user_genre: genero === 'male' ? 'MALE' : 'FEMALE',
+        user_cpf: cpf.generate(),
+        user_rg: faker.number.int({ min: 4444, max: 99999 }).toString()
+      }
 
 
+      const patient: CreatePatientDto = {
+        user_name: person.user_name,
+        user_email: person.user_email,
+        user_profile_id: person.user_profile_id,
+        user_phone: person.user_phone,
+        user_password: person.user_password,
+        user_date_of_birth: person.user_date_of_birth.replace(/-/g, "/"),
+        user_genre: person.user_genre === 'MALE' ? UserGenderType.MALE : UserGenderType.FEMALE,
+        user_cpf: person.user_cpf,
+        user_rg: person.user_rg
+      }
+
+      this.createPatient(patient)
+
+      persons.push(patient)
+
+
+    }
+
+
+    return persons
+  }
 
 
 

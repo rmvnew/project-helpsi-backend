@@ -24,6 +24,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@faker-js/faker": "^8.3.1",
     "@nestjs/common": "^10.2.5",
     "@nestjs/config": "^3.0.0",
     "@nestjs/core": "^8.0.0",
@@ -32,6 +33,7 @@
     "@nestjs/platform-express": "^8.0.0",
     "@nestjs/swagger": "^6.0.4",
     "@nestjs/typeorm": "^9.0.0",
+    "@types/faker": "^6.6.9",
     "@types/luxon": "^3.3.2",
     "@types/nodemailer": "^6.4.9",
     "@types/otplib": "^10.0.0",
@@ -41,7 +43,9 @@
     "bcrypt": "^5.0.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.13.2",
+    "cpf-cnpj-validator": "^1.0.3",
     "date-fns": "^2.30.0",
+    "faker": "^6.6.6",
     "google-auth-library": "^9.0.0",
     "luxon": "^3.4.3",
     "mysql2": "^3.6.0",
