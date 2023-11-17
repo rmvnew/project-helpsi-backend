@@ -62,13 +62,13 @@ export class UserController {
     Acesso: [Administrador, Psicólogo, Atendente]` })
   @ApiQuery({ name: 'user_name', required: false, description: '### Este é um filtro opcional!' })
   async findAll(
-    @Query() query
+    @Query() filter: FilterUser
   ): Promise<Pagination<UserResponseDto>> {
 
-    const filter: FilterUser = {
-      ...new FilterUser(),
-      ...query
-    };
+    // const filter: FilterUser = {
+    //   ...new FilterUser(),
+    //   ...query
+    // };
     filter.route = getUserPath();
     return this.userService.findAll(filter);
   }
@@ -190,13 +190,9 @@ export class UserController {
     Acesso: [Administrador, Psicólogo, Atendente]` })
   @ApiQuery({ name: 'user_name', required: false, description: '### Este é um filtro opcional!' })
   async findAllPpatients(
-    @Query() query
+    @Query() filter: FilterUser
   ): Promise<Pagination<UserResponseDto>> {
 
-    const filter: FilterUser = {
-      ...new FilterUser(),
-      ...query
-    };
     filter.route = getUserPatientPath();
     return this.userService.findAllPatients(filter);
   }
