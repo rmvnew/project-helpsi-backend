@@ -48,6 +48,7 @@ export class DiaryEntryService {
         .leftJoinAndSelect('diary.patient_details', 'patient')
         .leftJoin('patient.user', 'user') // Usamos 'leftJoin' aqui para não selecionar todos os detalhes do usuário
         .addSelect('user.user_id')
+        .addSelect('user.user_name')
 
 
 
