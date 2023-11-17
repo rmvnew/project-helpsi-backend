@@ -194,7 +194,11 @@ export class UserService {
       const userQueryBuilder = this.userRepository.createQueryBuilder('user');
       if (showActives === "true") {
         userQueryBuilder.andWhere('user.user_status = true');
+      } else if (showActives === "false") {
+        userQueryBuilder.andWhere('user.user_status = false');
       }
+
+
       if (user_name) {
         userQueryBuilder.andWhere(`user.user_name LIKE :user_name`, {
           user_name: `%${user_name}%`
@@ -1155,7 +1159,10 @@ export class UserService {
 
       if (showActives === "true") {
         userQueryBuilder.andWhere('user.user_status = true');
+      } else if (showActives === "false") {
+        userQueryBuilder.andWhere('user.user_status = false');
       }
+
       if (user_name) {
         userQueryBuilder.andWhere(`user.user_name LIKE :user_name`, {
           user_name: `%${user_name}%`
