@@ -5,8 +5,9 @@ import AccessProfile from 'src/auth/enums/permission.type';
 import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
 import { PublicRoute } from 'src/common/decorators/public_route.decorator';
 import { RecoverInterface } from 'src/common/interfaces/recover.interface';
-import { getUserPath, getUserPatientPath } from 'src/common/routes.path';
+import { getUserPath, getUserPatientByPsychologistPath, getUserPatientPath } from 'src/common/routes.path';
 import { ProfileEntity } from 'src/profile/entities/profile.entity';
+import { FilterPsychologists } from './dto/Filter.psychologists';
 import { FilterUser } from './dto/Filter.user';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -179,6 +180,40 @@ export class UserController {
     @Query('email') email: string
   ) {
     return this.userService.checkingRegisterCompleteByEmail(email)
+  }
+
+
+  @Get('/one-patient')
+  @UseGuards(PermissionGuard(AccessProfile.ALL))
+  @ApiOperation({
+    description: `# Esta rota busca dados do Paciente.
+    Tipo: Autenticada. 
+    Acesso: [Todos]` })
+  @ApiQuery({ name: 'user_id', required: true, description: '### Este é um filtro obrigatório!' })
+  async findAllPpatientsByNamew(
+    @Query('user_id') user_id: string
+
+  ): Promise<any> {
+
+
+
+    return this.userService.getPatientByIdOrName(user_id);
+  }
+
+
+  @Get('/all-patients/psychologist')
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST_ATTENDANT))
+  @ApiOperation({
+    description: `# Esta rota busca todos Pacientes.
+    Tipo: Autenticada. 
+    Acesso: [Administrador, Psicólogo, Atendente]` })
+  @ApiQuery({ name: 'user_id', required: true, description: '### Este é um filtro obrigatório!' })
+  async findAllPpatientsByPsychologist(
+    @Query() filter: FilterPsychologists
+  ): Promise<Pagination<UserResponseDto>> {
+
+    filter.route = getUserPatientByPsychologistPath()
+    return this.userService.findAllPatientsByPsychologist(filter);
   }
 
 

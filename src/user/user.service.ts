@@ -27,6 +27,7 @@ import { SpecialtyResponseDto } from 'src/specialty/dto/specialty.response.dto';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { Repository } from 'typeorm';
 import { CreateHistoricRecoverDto } from '../historic_recover/dto/create-historic-recover.dto';
+import { FilterPsychologists } from './dto/Filter.psychologists';
 import { FilterUser } from './dto/Filter.user';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -419,8 +420,6 @@ export class UserService {
   async update(id: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
 
 
-
-
     try {
 
 
@@ -474,12 +473,6 @@ export class UserService {
 
         user.user_email = user_email
 
-        Validations.getInstance().validateWithRegex(
-          user.user_email,
-          ValidType.IS_EMAIL,
-          ValidType.NO_SPACE
-        )
-
       }
 
       if (profile_id) {
@@ -528,6 +521,11 @@ export class UserService {
 
       user.user_date_of_birth = new Date(+year, +month - 1, +day)
 
+
+
+      if (user.address.address_city === undefined) {
+        delete user.address
+      }
 
 
       await this.userRepository.save(user)
@@ -1286,4 +1284,118 @@ export class UserService {
 
 
 
+
+
+  async getPatientByIdOrName(user_id: string) {
+
+
+    const custom_query = `
+          SELECT 
+              u.user_id,
+              u.user_name,
+              u.user_genre,
+              u.user_enrollment,
+              u.user_profile_id,
+              pd.patient_details_id,
+              pd.consultation_reason
+          FROM USER u 
+          INNER JOIN PROFILE p ON p.profile_id = u.user_profile_id 
+          INNER JOIN PATIENT_DETAILS pd ON pd.patient_details_id = u.patient_details_id 
+          WHERE p.profile_name = 'PATIENT'
+              AND (u.user_id = '${user_id}');
+      `;
+
+    const myQuery = await this.userRepository.query(custom_query);
+
+    return myQuery;
+  }
+
+
+  async findAllPatientsByPsychologist(filter: FilterPsychologists): Promise<Pagination<any>> {
+
+    try {
+      const { sort, orderBy, user_id } = filter;
+
+
+      const userQueryBuilder = this.userRepository.createQueryBuilder('user')
+        .leftJoinAndSelect('user.profile', 'profile')
+        .leftJoinAndSelect('user.psychologist', 'psychologist')
+        .where(`profile.profile_name = 'PATIENT'`)
+        .andWhere(`psychologist.user_id = '${user_id}'`)
+
+
+
+      if (orderBy == SortingType.DATE) {
+        userQueryBuilder.orderBy('user.create_at', `${sort === 'DESC' ? 'DESC' : 'ASC'}`);
+      } else {
+        userQueryBuilder.orderBy('user.user_name', `${sort === 'DESC' ? 'DESC' : 'ASC'}`);
+      }
+      const page = await paginate<UserEntity>(userQueryBuilder, filter);
+
+
+      for (let user of page.items) {
+
+
+        if (user.user_id) {
+
+          const currentUser = await this.userRepository.createQueryBuilder('user')
+            .leftJoinAndSelect('user.address', 'address')
+            .leftJoinAndSelect('user.psychologist', 'psychologist')
+            .leftJoinAndSelect('user.patientDetails', 'patientDetails')
+            .where('user.user_id = :id', { id: user.user_id })
+            .getOne()
+
+          const currentAddress = currentUser.address
+          const currentPsychologist = currentUser.psychologist
+          const currentPatientDetails = currentUser.patientDetails
+
+          const specialtys = await this.specialtyRepository.createQueryBuilder("specialty")
+            .innerJoin("specialty.users", "user")
+            .where("user.user_id = :userId", { userId: user.user_id })
+            .getMany();
+
+          const specialtyDtos = specialtys.map(specialty => {
+            return {
+              specialty_id: specialty.specialty_id,
+              specialty_name: specialty.specialty_name,
+              users: specialty.users
+            }
+          });
+
+
+
+          user.specialtys = specialtyDtos;
+          user.address = this.transformAddress(currentAddress)
+          user['basicPsychologist'] = this.transformPsychologist(currentPsychologist)
+          user['patientDetail'] = this.transformPatientDetails(currentPatientDetails)
+          delete user.user_password
+          delete user.user_2fa_secret
+
+        }
+      }
+
+
+
+      page.links.first = page.links.first === '' ? '' : `${page.links.first}&sort=${sort}&orderBy=${orderBy}`;
+      page.links.previous = page.links.previous === '' ? '' : `${page.links.previous}&sort=${sort}&orderBy=${orderBy}`;
+      page.links.last = page.links.last === '' ? '' : `${page.links.last}&sort=${sort}&orderBy=${orderBy}`;
+      page.links.next = page.links.next === '' ? '' : `${page.links.next}&sort=${sort}&orderBy=${orderBy}`;
+
+      return page;
+
+    } catch (error) {
+      this.logger.error(`findAll error: ${error.message}`, error.stack)
+      throw error;
+    }
+
+
+
+
+  }
+
+
 }
+
+
+
+
