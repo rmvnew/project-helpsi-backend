@@ -41,7 +41,7 @@ export class DiaryEntryService {
   async findAll(filter: DiaryFilter) {
 
     try {
-      const { sort, orderBy } = filter;
+      const { sort, orderBy, user_id } = filter;
 
 
       const diaryQueryBuilder = this.diaryEntryRepository.createQueryBuilder('diary')
@@ -51,6 +51,11 @@ export class DiaryEntryService {
         .addSelect('user.user_name')
 
 
+
+      if (user_id) {
+        diaryQueryBuilder
+          .andWhere('user.user_id = :user_id', { user_id })
+      }
 
 
 

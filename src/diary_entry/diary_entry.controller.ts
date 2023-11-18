@@ -36,8 +36,9 @@ export class DiaryEntryController {
     Tipo: Autenticada. 
     Acesso: [Administrador,Paciente,Psicólogo]` })
   @UseGuards(PermissionGuard(AccessProfile.ADMIN_PATIENT_PSYCHOLOGIST))
+  @ApiQuery({ name: 'user_id', required: false, description: '### Esta variavel é opcional para buscar textos de um paciente especifico!' })
   async findAll(
-    @Query('filter') filter: DiaryFilter
+    @Query() filter: DiaryFilter
   ) {
 
     filter.route = getDiaryEntryPath()
