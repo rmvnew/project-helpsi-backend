@@ -112,27 +112,7 @@ export class DiaryEntryService {
   }
 
 
-  // classifyText(text: string): any {
 
-
-
-  //   const scriptPath = join('/home/ricardo/Project/UNINORTE/Project\\ Helpsi/back/src/common/ia/text_classification.py');
-
-  //   // const scriptPath = join(__dirname, 'src/diary_entry/text_classification.py');
-
-
-  //   const rawOutput = execSync(`python3 ${scriptPath} "${text}"`).toString();
-
-
-  //   let result;
-  //   try {
-  //     result = JSON.parse(rawOutput);
-  //   } catch (err) {
-  //     console.error('Failed to parse the output:', err);
-  //   }
-
-  //   return result;
-  // }
 
 
   classifyText(text: string): any {
@@ -173,6 +153,25 @@ export class DiaryEntryService {
       const res = this.processEmotionData(result)
 
       return res;
+    } catch (error) {
+      console.error('Error running Python script:', error);
+      return null;
+    }
+  }
+
+
+  classifyTextMin(text: string): any {
+
+    try {
+
+      const pythonOutput = execSync(`python3 src/common/ia/min2.py "${text}"`, {
+        encoding: 'utf-8',
+      });
+      const result = JSON.parse(pythonOutput);
+
+      console.log('Res: ', result);
+
+      return result;
     } catch (error) {
       console.error('Error running Python script:', error);
       return null;

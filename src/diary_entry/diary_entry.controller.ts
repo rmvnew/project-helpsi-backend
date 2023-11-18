@@ -57,6 +57,17 @@ export class DiaryEntryController {
     return this.diaryEntryService.classifyText(text)
   }
 
+  @Get('/emotion/min')
+  @ApiOperation({
+    description: `# Esta rota busca o resultado de mineração de dados baseado nas emoções dos textos do paciente.
+    Tipo: Autenticada. 
+    Acesso: [Administrador,Psicólogo]` })
+  @ApiQuery({ name: 'text', required: false })
+  @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST))
+  async getEmotionMin(@Query('text') text: string) {
+    return this.diaryEntryService.classifyTextMin(text)
+  }
+
   @Get(':id')
   @ApiOperation({
     description: `# Esta rota busca um registro de diário por Id.

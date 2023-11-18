@@ -13,7 +13,7 @@ def preprocess_text(text):
 
 def analyze_sentiment(text):
     # Carregar o modelo treinado
-    model = load('sentiment_model.joblib')
+    model = load('src/common/ia/sentiment_model.joblib')
     processed_text = preprocess_text(text)
 
     # Usando predict_proba para obter probabilidades
