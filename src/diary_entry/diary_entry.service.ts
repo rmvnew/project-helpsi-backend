@@ -2,7 +2,10 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import { InjectRepository } from '@nestjs/typeorm';
 import { execSync } from 'child_process';
 import { paginate } from 'nestjs-typeorm-paginate';
+import { GeneralMailInterface, mailDataPatientInterface } from 'src/common/interfaces/email.interface';
+import { MailService } from 'src/mail/mail.service';
 import { PatientDetailsService } from 'src/patient_details/patient_details.service';
+import { UserEntity } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateDiaryEntryDto } from './dto/create-diary_entry.dto';
 import { DiaryFilter } from './dto/diary.filter';
@@ -14,17 +17,21 @@ export class DiaryEntryService {
 
   private readonly logger = new Logger(DiaryEntryService.name)
 
+
   constructor(
     @InjectRepository(DiaryEntry)
     private readonly diaryEntryRepository: Repository<DiaryEntry>,
-    private readonly patientDetailsService: PatientDetailsService
+    private readonly patientDetailsService: PatientDetailsService,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+    private readonly mailService: MailService
   ) { }
 
 
   async create(createDiaryEntryDto: CreateDiaryEntryDto) {
 
 
-    const { patient_details_id } = createDiaryEntryDto
+    const { patient_details_id, text } = createDiaryEntryDto
 
     if (!patient_details_id) {
       throw new BadRequestException('Patient details não encontrada')
@@ -33,10 +40,189 @@ export class DiaryEntryService {
     const details = await this.patientDetailsService.findOne(patient_details_id)
 
     const diary = this.diaryEntryRepository.create(createDiaryEntryDto)
+
     diary.patient_details = details
 
+    const emotion = this.classifyTextMin(text)
+    // console.log(emotion);
+    const current = emotion.data.emotion
+
+
+    // Caso a tristeza for maior que 50%
+    if (
+      current.tristeza > 50 ||
+      ((current.tristeza + current.medo > 70) && current.tristeza > current.medo)
+    ) {
+
+
+      // Aqui busco dados do psicologo que está assossiado ao paciente xD
+      const patient = await this.userRepository.findOne({
+        where: {
+          patientDetails: { patient_details_id }
+        },
+        relations: ['psychologist']
+      })
+
+      const psy_mail = patient.psychologist.user_email
+
+      const emotion_data: mailDataPatientInterface = {
+        text,
+        patient_name: patient.user_name,
+        psy_mail,
+        patient_mail: patient.user_email,
+        level_of_joy: current.alegria,
+        level_of_disgust: current.desgosto,
+        level_of_fear: current.medo,
+        anger_level: current.raiva,
+        level_of_surprise: current.surpresa,
+        level_of_sadness: current.tristeza
+
+      }
+
+      this.sendMailToPsychologist(emotion_data)
+
+
+    }
+
     return this.diaryEntryRepository.save(diary)
+
+
   }
+
+
+  async sendMailToPsychologist(mail_options: mailDataPatientInterface) {
+
+    const current_mail = `
+    
+    <!DOCTYPE html>
+    <html lang="pt">
+    <head>
+        <meta charset="UTF-8">
+        <title>Alerta de Emoções do Paciente</title>
+        <style>
+            .container {
+                font-family: Arial, sans-serif; 
+                border: 1px solid #e0e0e0; 
+                padding: 20px; 
+                max-width: 600px; 
+                margin: auto; 
+                background-color: #f9f9f9;
+            }
+            h2 {
+                text-align: center;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+                box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            }
+            th, td {
+                border: 1px solid #ddd;
+                text-align: left;
+                padding: 8px;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+            tr:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+
+            .sadness{
+
+              background-color: rgb(182, 182, 182);
+              border: 1.5px solid rgb(0, 123, 255);
+              font-weight: 600;
+
+            }
+
+            .card-text{
+              font-size: 0.8rem;
+              border-radius: 10px;
+              padding: 20px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+              background-color: #eee;
+              color: rgb(0, 75, 94);
+            }
+
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <img src="https://github.com/rmvnew/rmvnew/blob/main/logo_oficial_2.png?raw=true" alt="Logo da Helpsi" style="display: block; margin: auto; width: 200px;">
+            
+            <h2 style="color: #333;">Alerta de Emoção do Paciente</h2>
+            
+            <p>Prezado(a) psicólogo(a),</p>
+            
+            <p>Informamos que o paciente <b style="color: blue;">${mail_options.patient_name}</b> demonstrou um nível elevado de tristeza em sua última sessão. Recomendamos atenção especial a este caso.</p>
+            
+            <h5><i>Texto do(a) paciente</i></h5>
+            <div class="card-text">
+            
+              <p>${mail_options.text}</p>
+
+            </div>
+
+            <table>
+                <tr>
+                    <th>Emoção</th>
+                    <th>Percentual (%)</th>
+                </tr>
+                <tr>
+                    <td>Alegria</td>
+                    <td>${mail_options.level_of_joy}</td>
+                </tr>
+                <tr>
+                    <td>Desgosto</td>
+                    <td>${mail_options.level_of_disgust}</td>
+                </tr>
+                <tr>
+                    <td>Medo</td>
+                    <td>${mail_options.level_of_fear}</td>
+                </tr>
+                <tr>
+                    <td>Raiva</td>
+                    <td>${mail_options.anger_level}</td>
+                </tr>
+                <tr>
+                    <td>Surpresa</td>
+                    <td>${mail_options.level_of_surprise}</td>
+                </tr>
+                <tr class="sadness">
+                    <td>Tristeza</td>
+                    <td>${mail_options.level_of_sadness}</td>
+                </tr>
+            </table>
+            
+            <p>Esta tabela mostra a análise dos níveis emocionais do paciente com base na última sessão. É importante considerar esses dados para acompanhar o progresso e o bem-estar do paciente.</p>
+            
+            <p>Com carinho,</p>
+            <p>Equipe da Helpsi</p>
+        </div>
+    </body>
+    </html>
+
+
+
+
+    `
+
+    const general_data: GeneralMailInterface = {
+      to: mail_options.psy_mail,
+      from: mail_options.patient_mail,
+      subject: '[URGENTE] Alerta de Emoção do Paciente',
+      html: current_mail
+    }
+
+    this.mailService.generalMail(general_data)
+
+  }
+
 
   async findAll(filter: DiaryFilter) {
 
@@ -168,8 +354,6 @@ export class DiaryEntryService {
         encoding: 'utf-8',
       });
       const result = JSON.parse(pythonOutput);
-
-      console.log('Res: ', result);
 
       return result;
     } catch (error) {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { Transporter } from 'nodemailer';
-import { CodeRecoverInterface, WellcomeInterface } from 'src/common/interfaces/email.interface';
+import { CodeRecoverInterface, GeneralMailInterface, SendCurrentMailInterface, WellcomeInterface } from 'src/common/interfaces/email.interface';
 
 @Injectable()
 export class MailService {
@@ -19,15 +19,13 @@ export class MailService {
       },
     });
 
-    // console.log("Inicializando MailService...");
-    // console.log("User:", process.env.MAIL_USER);
-    // console.log("Pass:", process.env.MAIL_PASSWORD ? 'Password Present' : 'Password Absent');
+
   }
 
   sendMail(codeRecover: CodeRecoverInterface) {
-    console.log(codeRecover);
 
-    const mailOptions = {
+
+    const mailOptions: SendCurrentMailInterface = {
       to: codeRecover.email,
       from: 'HelPsi <helpsimanaus@outlook.com>',
       subject: 'Código para Redefinição de Senha!!',
@@ -42,30 +40,24 @@ export class MailService {
                   <p>Equipe do HelPsi</p>
               </div>
             `
-
     };
 
-    this.transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.log('Error sending email:', error);
-      } else {
-        console.log('Email sent:', info.response);
-      }
-    });
+    this.sendCurrentMail(mailOptions)
+
   }
 
 
   wallcomeMesage(wellcome: WellcomeInterface) {
 
 
-    const mailOptions = {
+    const mailOptions: SendCurrentMailInterface = {
       to: wellcome.email,
       from: 'HelPsi <helpsimanaus@outlook.com>',
       subject: 'Seja Bem-Vindo ao Helpsi: Sua Jornada de Bem-Estar Começa Aqui',
       html: `
       <div style="font-family: Arial, sans-serif; border: 1px solid #e0e0e0; padding: 20px; max-width: 600px; margin: auto; background-color: #f9f9f9;">
       <!-- Inserir logo aqui -->
-      <img src="https://github.com/rmvnew/rmvnew/blob/main/helpsi-logo.png?raw=true" alt="Logo da Helpsi" style="display: block; margin: auto; width: 130px; height: 130px;">
+      <img src="https://github.com/rmvnew/rmvnew/blob/main/logo_oficial_2.png?raw=true" alt="Logo da Helpsi" style="display: block; margin: auto; width: 250px; height: 130px;">
       
       <h2 style="color: #333;">Olá, ${wellcome.name}, seja muito bem-vindo!</h2>
       
@@ -82,14 +74,40 @@ export class MailService {
 `
     };
 
-    this.transporter.sendMail(mailOptions, (error, info) => {
+    this.sendCurrentMail(mailOptions)
+
+  }
+
+
+
+  async generalMail(general_mail: GeneralMailInterface) {
+
+    const current_mail: SendCurrentMailInterface = {
+      to: general_mail.to,
+      from: 'HelPsi <helpsimanaus@outlook.com>',
+      subject: general_mail.subject,
+      html: general_mail.html
+    }
+
+    this.sendCurrentMail(current_mail)
+
+  }
+
+
+
+  async sendCurrentMail(mail_options: SendCurrentMailInterface) {
+
+    this.transporter.sendMail(mail_options, (error, info) => {
       if (error) {
         console.log('Error sending email:', error);
       } else {
         console.log('Email sent:', info.response);
       }
     });
+
   }
+
+
 }
 
 
