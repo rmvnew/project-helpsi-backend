@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { execSync } from 'child_process';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { GeneralMailInterface, mailDataPatientInterface } from 'src/common/interfaces/email.interface';
 import { MailService } from 'src/mail/mail.service';
@@ -44,45 +46,40 @@ export class DiaryEntryService {
     diary.patient_details = details
 
     const emotion = this.classifyTextMin(text)
-    // console.log(emotion);
+
     const current = emotion.data.emotion
 
+    const dataFormatada = format(new Date(emotion.data.timestamp), 'dd/MM/yyyy HH:mm:ss', { locale: ptBR });
 
-    // Caso a tristeza for maior que 50%
-    if (
-      current.tristeza > 50 ||
-      ((current.tristeza + current.medo > 70) && current.tristeza > current.medo)
-    ) {
+    // Aqui busco dados do psicologo que está assossiado ao paciente xD
+    const patient = await this.userRepository.findOne({
+      where: {
+        patientDetails: { patient_details_id }
+      },
+      relations: ['psychologist']
+    })
 
+    const psy_mail = patient.psychologist.user_email
 
-      // Aqui busco dados do psicologo que está assossiado ao paciente xD
-      const patient = await this.userRepository.findOne({
-        where: {
-          patientDetails: { patient_details_id }
-        },
-        relations: ['psychologist']
-      })
-
-      const psy_mail = patient.psychologist.user_email
-
-      const emotion_data: mailDataPatientInterface = {
-        text,
-        patient_name: patient.user_name,
-        psy_mail,
-        patient_mail: patient.user_email,
-        level_of_joy: current.alegria,
-        level_of_disgust: current.desgosto,
-        level_of_fear: current.medo,
-        anger_level: current.raiva,
-        level_of_surprise: current.surpresa,
-        level_of_sadness: current.tristeza
-
-      }
-
-      this.sendMailToPsychologist(emotion_data)
-
+    const emotion_data: mailDataPatientInterface = {
+      hour: dataFormatada,
+      text,
+      patient_name: patient.user_name,
+      psy_mail,
+      patient_mail: patient.user_email,
+      level_of_joy: current.alegria,
+      level_of_disgust: current.desgosto,
+      level_of_fear: current.medo,
+      anger_level: current.raiva,
+      level_of_surprise: current.surpresa,
+      level_of_sadness: current.tristeza
 
     }
+
+    this.sendMailToPsychologist(emotion_data)
+
+
+
 
     return this.diaryEntryRepository.save(diary)
 
@@ -129,14 +126,6 @@ export class DiaryEntryService {
                 background-color: #f9f9f9;
             }
 
-            .sadness{
-
-              background-color: rgb(182, 182, 182);
-              border: 1.5px solid rgb(0, 123, 255);
-              font-weight: 600;
-
-            }
-
             .card-text{
               font-size: 0.8rem;
               border-radius: 10px;
@@ -149,23 +138,54 @@ export class DiaryEntryService {
               color: rgb(0, 75, 94);
             }
 
+            .card-hour {
+              display: flex;
+              margin-top: 20px;
+              border-radius: 10px;
+              box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+            }
+
+
+            .hour-title {
+             
+              margin-top: 0;
+              margin-bottom: 0;
+              margin-left: 20px;
+              border-bottom-left-radius: 10px;
+              border-top-left-radius: 10px;
+              text-align: center; /* Centraliza o texto horizontalmente */
+              display: flex;
+              align-items: center; /* Centraliza o conteúdo verticalmente */
+              justify-content: center; /* Centraliza o conteúdo horizontalmente quando usando flex */
+              padding: 10px 0; /* Ajuste o padding conforme necessário para melhor aparência */
+            }
+
+            
+
+
         </style>
     </head>
     <body>
         <div class="container">
             <img src="https://github.com/rmvnew/rmvnew/blob/main/logo_oficial_2.png?raw=true" alt="Logo da Helpsi" style="display: block; margin: auto; width: 200px;">
             
-            <h2 style="color: #333;">Alerta de Emoção do Paciente</h2>
+            <h2 style="color: #333;">Diário de Emoção do Paciente</h2>
             
             <p>Prezado(a) psicólogo(a),</p>
             
-            <p>Informamos que o paciente <b style="color: blue;">${mail_options.patient_name}</b> demonstrou um nível elevado de tristeza em sua última sessão. Recomendamos atenção especial a este caso.</p>
+            <p>Informamos que o paciente <b style="color: blue;">${mail_options.patient_name}</b>, 
+                registrou um novo texto em seu diário de emoções.</p>
             
             <h5><i>Texto do(a) paciente</i></h5>
             <div class="card-text">
             
               <p>${mail_options.text}</p>
 
+            </div>
+
+            <div class="card-hour">
+              <p class="hour-title">Data e hora da coleta: ${mail_options.hour}</p>
+              
             </div>
 
             <table>
@@ -193,13 +213,15 @@ export class DiaryEntryService {
                     <td>Surpresa</td>
                     <td>${mail_options.level_of_surprise}</td>
                 </tr>
-                <tr class="sadness">
+                <tr >
                     <td>Tristeza</td>
                     <td>${mail_options.level_of_sadness}</td>
                 </tr>
             </table>
+            <br>
             
-            <p>Esta tabela mostra a análise dos níveis emocionais do paciente com base na última sessão. É importante considerar esses dados para acompanhar o progresso e o bem-estar do paciente.</p>
+            <p>Esta tabela mostra a análise dos níveis emocionais do paciente com base na última sessão. 
+                É importante considerar esses dados para acompanhar o progresso e o bem-estar do paciente.</p>
             
             <p>Com carinho,</p>
             <p>Equipe da Helpsi</p>
@@ -215,9 +237,12 @@ export class DiaryEntryService {
     const general_data: GeneralMailInterface = {
       to: mail_options.psy_mail,
       from: mail_options.patient_mail,
-      subject: '[URGENTE] Alerta de Emoção do Paciente',
+      subject: `Novo diário de Emoção do Paciente [${mail_options.patient_name.toUpperCase()}]`,
       html: current_mail
     }
+
+
+    // console.log(general_data);
 
     this.mailService.generalMail(general_data)
 

@@ -29,6 +29,7 @@ export interface GeneralMailInterface {
 
 
 export interface mailDataPatientInterface {
+    hour: string,
     text: string,
     patient_name: string,
     psy_mail: string,
