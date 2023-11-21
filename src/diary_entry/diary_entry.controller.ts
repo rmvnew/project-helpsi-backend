@@ -1,7 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiExcludeEndpoint, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import AccessProfile from 'src/auth/enums/permission.type';
 import { PermissionGuard } from 'src/auth/shared/guards/permission.guard';
+import { PublicRoute } from 'src/common/decorators/public_route.decorator';
 import { getDiaryEntryPath } from 'src/common/routes.path';
 import { DiaryEntryService } from './diary_entry.service';
 import { CreateDiaryEntryDto } from './dto/create-diary_entry.dto';
@@ -65,6 +66,20 @@ export class DiaryEntryController {
   @ApiQuery({ name: 'text', required: false })
   @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST))
   async getEmotionMin(@Query('text') text: string) {
+    return this.diaryEntryService.classifyTextMin(text)
+  }
+
+  @Get('/emotion/min/pub')
+  @ApiExcludeEndpoint()
+  @ApiOperation({
+    description: `# Esta rota busca o resultado de mineração de dados baseado nas emoções dos textos do paciente.
+    Tipo: Livre. 
+    Acesso: [Todos]` })
+  @ApiQuery({ name: 'text', required: false })
+
+  // @UseGuards(PermissionGuard(AccessProfile.ADMIN_PSYCHOLOGIST))
+  @PublicRoute()
+  async getEmotionMinPub(@Query('text') text: string) {
     return this.diaryEntryService.classifyTextMin(text)
   }
 
