@@ -420,6 +420,8 @@ export class UserService {
   async update(id: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
 
 
+
+
     try {
 
 
@@ -451,6 +453,8 @@ export class UserService {
         user_id: id,
         ...updateUserDto
       })
+
+
 
 
       if (user_name) {
@@ -501,6 +505,7 @@ export class UserService {
 
       }
 
+
       if (user_phone) {
         user.user_phone = user_phone
       }
@@ -517,15 +522,11 @@ export class UserService {
       }
 
 
+
       const [day, month, year] = user_date_of_birth.split("/")
 
       user.user_date_of_birth = new Date(+year, +month - 1, +day)
 
-
-
-      if (user.address.address_city === undefined) {
-        delete user.address
-      }
 
 
       await this.userRepository.save(user)
@@ -537,8 +538,6 @@ export class UserService {
       throw error
     }
   }
-
-
 
 
   async deleteUser(id: string) {
